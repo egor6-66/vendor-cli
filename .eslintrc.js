@@ -5,12 +5,7 @@ module.exports = {
         jest: true,
     },
     parser: '@typescript-eslint/parser',
-    plugins: [
-        'simple-import-sort',
-        'promise',
-        'sonarjs',
-        'unicorn',
-    ],
+    plugins: ['simple-import-sort', 'promise', 'sonarjs', 'unicorn'],
     parserOptions: {
         sourceType: 'module',
         ecmaVersion: 'latest',
@@ -51,7 +46,6 @@ module.exports = {
 
     rules: {
         '@typescript-eslint/no-var-requires': 0,
-        'no-console': 'error',
         'promise/catch-or-return': 0,
         'promise/always-return': 0,
         '@typescript-eslint/consistent-type-definitions': 'error',

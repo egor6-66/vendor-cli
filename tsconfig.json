@@ -20,7 +20,7 @@
     }
   },
   "include": [
-    "src",
-    "plugins",
+    "src/*",
+    "plugins"
   ]
 }
