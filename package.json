@@ -48,5 +48,6 @@
   ],
   "bin": {
     "shared-assets": "dist/src/index.js"
-  }
+  },
+  "version": "0.0.1"
 }
