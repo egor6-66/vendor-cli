@@ -1,18 +1,18 @@
-interface IEntries {
-    version?: number;
+export interface IExposes {
+    minify?: boolean;
+    sourcemap?: boolean;
+    entries: Array<{ version: number; name: string; targets: Record<string, string> }>;
+}
+
+export interface IRemotes {
+    host: string;
     name: string;
-    exposes: Record<string, string>;
-    shared?: string[];
+    entries: Array<{ host?: string; version: number; name: string }>;
 }
 
-export interface IDistConfig {
-    type: 'distributor';
-    entries: Array<IEntries>;
-    files: Array<string>;
-    folders: Array<string>;
-}
-
-export interface IClientConfig {
-    type: 'client';
-    remotes: Record<string, string>;
+export interface IConfig {
+    platform: 'browser' | 'node';
+    zipPass?: string;
+    exposes?: IExposes;
+    remotes?: IRemotes;
 }

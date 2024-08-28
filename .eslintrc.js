@@ -45,6 +45,7 @@ module.exports = {
     ],
 
     rules: {
+        'promise/no-nesting': 0,
         '@typescript-eslint/no-var-requires': 0,
         'promise/catch-or-return': 0,
         'promise/always-return': 0,

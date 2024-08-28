@@ -1,50 +1,40 @@
-import fs from 'fs';
+import cmd from 'node-cmd';
 import path from 'path';
-import util from 'util';
 
-import { serverType } from '../constants';
-import { IClientConfig, IDistConfig } from '../types';
-import { status } from '../utils';
-
-import GenerateTypes from './generateTypes';
+import { scriptsPath, typesPath } from '../constants';
+import { IConfig } from '../types';
+import { createFile } from '../utils';
+import { getSize, status } from '../utils';
 
 class Build {
-    private pluginsPath = path.join(__dirname, '../', '../', '../', 'plugins');
+    constructor(config: IConfig) {
+        this.buildScripts(config, () => {
+            this.buildTypes(config);
+        });
+    }
 
-    constructor(config: IClientConfig | IDistConfig) {
-        if (config.type === 'distributor') {
-            this.generateDistPlugins(config);
+    buildScripts(config: IConfig, next: () => void) {
+        if (config.exposes?.entries.length) {
+            createFile.esbuild(config, () => {
+                cmd.run(`ts-node .vendor/_utils/esbuild`, async (error) => {
+                    error ? status.error('Failed to build scripts') : next();
+                });
+            });
         }
     }
 
-    private generateDistPlugins(config: IDistConfig) {
-        const pluginPath = path.join(this.pluginsPath, `${serverType.DIST}.ts`);
-        fs.unlinkSync(pluginPath);
-        fs.appendFileSync(pluginPath, "import { container } from 'webpack'; \n \n");
-        const chunks: string[] = [];
-        config.entries.forEach(({ version, name, exposes, shared }, index) => {
-            if (chunks.includes(name)) {
-                status.error('duplicate name');
-            }
-
-            for (const i of Object.values(exposes)) {
-                if (!fs.existsSync(path.resolve(i))) {
-                    status.error(`no such file  ${i}`);
-                }
-            }
-
-            const template = { name, filename: `remote_${name}${version ? '_v' + version : ''}.js`, exposes, shared };
-
-            if (!shared?.length) delete template.shared;
-
-            index === 0 && fs.appendFileSync(pluginPath, `const configs = [\n`);
-            fs.appendFileSync(pluginPath, `${util.inspect(template)},\n`);
-            index === config.entries.length - 1 && fs.appendFileSync(pluginPath, `]\n \n`);
-            chunks.push(name);
+    buildTypes(config: IConfig) {
+        status.success(` ⏳ compiling started⏳ `.toUpperCase());
+        createFile.types(config, async (entryName, done) => {
+            const jsSize = getSize.file(path.join(scriptsPath, `${entryName}.js`));
+            const cssSize = getSize.file(path.join(scriptsPath, `${entryName}.css`));
+            const typesSize = await getSize.dir(path.join(typesPath, entryName));
+            status.info(`⚖️ ${entryName} size `, '');
+            jsSize && status.info('\tjs =>', jsSize);
+            cssSize && status.info('\tcss =>', cssSize);
+            typesSize && status.info('\ttypes =>', typesSize);
+            done && status.success(`👌Compiled successful👌 `.toUpperCase());
         });
-        fs.appendFileSync(pluginPath, `export const chunks = ${util.inspect(chunks)}\n`);
-        fs.appendFileSync(pluginPath, `export default configs.map((config) => new container.ModuleFederationPlugin(config));`);
-        new GenerateTypes(config);
     }
 }
 

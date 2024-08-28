@@ -1,38 +1,46 @@
 import fs from 'fs';
+import cmd from 'node-cmd';
 import path from 'path';
 
-import { projectName, serverType } from '../constants';
+import { configName, resourcesName, resourcesPath } from '../constants';
 import { status } from '../utils';
 
-const prompts = require('prompts');
-
 class Init {
-    private templatesPath = path.join(__dirname, '../', '../', '../', 'templates');
+    private templatesPath = path.join(__dirname, '../', '../', 'templates');
 
     constructor() {
         this.createConfig();
     }
 
     private createConfig() {
-        (async () => {
-            const res = await prompts({
-                type: 'select',
-                name: 'serverType',
-                message: 'select server type',
-                choices: [
-                    { title: serverType.DIST, description: 'all common data will be stored here', value: serverType.DIST },
-                    { title: serverType.CLIENT, description: 'here will request data', value: serverType.CLIENT },
-                ],
-            });
+        fs.copyFile(path.join(this.templatesPath, configName), path.resolve(configName), (err) => {
+            if (err) {
+                status.error('failed to create configuration file');
+            } else {
+                this.installEsbuild(this.createVendorFolder.bind(this));
+            }
+        });
+    }
 
-            console.log(this.templatesPath);
-            fs.readFile(`${this.templatesPath}/${res?.serverType}.ts`, 'utf8', (err, data) => {
-                if (data) {
-                    fs.writeFileSync(path.resolve(`${projectName}.config.ts`), data);
-                    status.success('Configuration file successfully created');
-                }
-            });
-        })();
+    installEsbuild(next: () => void) {
+        cmd.run(`esbuild --version`, (err) => {
+            if (err) {
+                cmd.run(`npm i -D esbuild`, (err) => {
+                    !err && next();
+                });
+            } else {
+                next();
+            }
+        });
+    }
+
+    createVendorFolder() {
+        if (fs.existsSync(resourcesPath)) {
+            fs.rmSync(resourcesPath, { recursive: true, force: true });
+        }
+
+        fs.cpSync(path.join(this.templatesPath, resourcesName), resourcesPath, { recursive: true });
+        status.success('😎 Initialization was successful 😎 ');
     }
 }
 

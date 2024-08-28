@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "outDir": "dist",
-    "target": "esnext",
-    "module": "commonjs",
+    "target": "ESNext",
+    "module": "CommonJS",
     "esModuleInterop": true,
     "moduleResolution": "node",
     "declaration": true,
@@ -20,7 +20,6 @@
     }
   },
   "include": [
-    "src/*",
-    "plugins"
+    "src"
   ]
 }

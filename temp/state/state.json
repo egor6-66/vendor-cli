@@ -1,0 +1,4 @@
+{
+  "webpack": "client",
+  "serverType": "distributor"
+}

@@ -5,4 +5,9 @@ import { hideBin } from 'yargs/helpers';
 
 import Commands from './services';
 
-yargs(hideBin(process.argv)).command(Commands.init).command(Commands.build).demandCommand().help().argv;
+yargs(hideBin(process.argv))
+    .command(Commands.init)
+    .command(Commands.build)
+    // .command(Commands.run)
+    .demandCommand()
+    .help().argv;

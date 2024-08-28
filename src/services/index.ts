@@ -1,28 +1,25 @@
 import fs from 'fs';
-import path from 'path';
 
-import { projectName } from '../constants';
-import { IClientConfig, IDistConfig } from '../types';
+import { configPath } from '../constants';
+import { IConfig } from '../types';
 import { status } from '../utils';
 
 import Build from './build';
 import Init from './init';
 
 class Commands {
-    vendorConfig!: IClientConfig | IDistConfig;
+    private readonly config!: IConfig;
 
     constructor() {
-        const configPath = path.resolve(`${projectName}.config.ts`);
-
         if (fs.existsSync(configPath)) {
-            this.vendorConfig = require(configPath);
+            this.config = require(configPath);
         }
     }
 
     init = {
         command: 'init',
         handler: () => {
-            if (this.vendorConfig) {
+            if (this.config) {
                 status.error('Config file already exists');
             }
 
@@ -33,11 +30,11 @@ class Commands {
     build = {
         command: 'build',
         handler: () => {
-            if (!this.vendorConfig) {
+            if (!this.config) {
                 status.error('config file not found');
             }
 
-            new Build(this.vendorConfig);
+            new Build(this.config);
         },
     };
 }
