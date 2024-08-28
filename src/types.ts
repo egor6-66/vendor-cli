@@ -1,7 +1,7 @@
 export interface IExposes {
     minify?: boolean;
     sourcemap?: boolean;
-    entries: Array<{ version: number; name: string; targets: Record<string, string> }>;
+    entries: Array<{ version: number; name: string; target: string }>;
 }
 
 export interface IRemotes {

@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-const path = require('path');
+const { join } = require('path');
 
 const file = (filePath: string) => {
     if (fs.existsSync(filePath)) {
@@ -8,11 +8,26 @@ const file = (filePath: string) => {
     }
 };
 
-const dir = async (directoryPath: string) => {
-    const files = await fs.promises.readdir(directoryPath);
-    const stats = files.map((file) => fs.promises.stat(path.join(directoryPath, file)));
+const dir = async (dirPath: string, end = true) => {
+    const files = await fs.promises.readdir(dirPath, { withFileTypes: true });
 
-    return (await Promise.all(stats)).reduce((accumulator, { size }) => accumulator + bytesToSize(size), '');
+    const paths = files.map(async (file) => {
+        const path = join(dirPath, file.name);
+
+        if (file.isDirectory()) return await dir(path, false);
+
+        if (file.isFile()) {
+            const { size } = await fs.promises.stat(path);
+
+            return size;
+        }
+
+        return 0;
+    });
+
+    const bytes = (await Promise.all(paths)).flat(Infinity).reduce((i, size) => i + size, 0);
+
+    return end ? bytesToSize(+bytes) : bytes;
 };
 
 function bytesToSize(bytes: number) {

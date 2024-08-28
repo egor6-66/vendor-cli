@@ -13,21 +13,21 @@ const esbuild = (config: IConfig, next: () => void) => {
 
     const entryPoints = entries.reduce(
         (acc, entry, entriesIndex) => {
-            const targets = Object.entries(entry.targets);
-            targets.forEach(([key, val], targetsIndex) => {
-                if (acc.chunks.includes(key)) {
-                    status.error('duplicate name');
-                }
+            const { name, target } = entry;
 
-                if (!fs.existsSync(path.resolve(val))) {
-                    status.error(`file not found ${val}`);
-                }
+            if (acc.chunks.includes(name)) {
+                status.error('duplicate name');
+            }
 
-                const start = entriesIndex === 0 && targetsIndex === 0;
-                const end = entriesIndex === entries.length - 1 && targetsIndex === targets.length - 1;
-                const entryObj = `{ in: path.resolve('${val}'), out: '${entry.name}'}`;
-                acc.entries += `${start ? '[' : ''} \n \t\t ${entryObj}, ${end ? '\n\t]' : ''}`;
-            });
+            if (!fs.existsSync(path.resolve(target))) {
+                status.error(`file not found ${target}`);
+            }
+
+            const start = entriesIndex === 0;
+            const end = entriesIndex === entries.length - 1;
+            const entryObj = `{ in: path.resolve('${target}'), out: '${name}'}`;
+            acc.chunks.push(target);
+            acc.entries += `${start ? '[' : ''} \n \t\t ${entryObj}, ${end ? '\n\t]' : ''}`;
 
             return acc;
         },
@@ -38,7 +38,7 @@ const esbuild = (config: IConfig, next: () => void) => {
         "const Esbuild = require('esbuild');",
         "const path = require('path'); \n",
         'module.exports = Esbuild.build({',
-        `\t outdir: path.resolve('${resourcesName}', 'scripts'),`,
+        `\t outdir: path.resolve('${resourcesName}', 'output', 'js'),`,
         `\t entryPoints: ${entryPoints.entries},`,
         '\t bundle: true,',
         `\t platform: '${platform}',`,

@@ -8,9 +8,7 @@ module.exports = {
             {
                 version: 1,
                 name: 'example',
-                targets: {
-                    example: './temp/example.ts',
-                },
+                target: './example/index.ts',
             },
         ],
     },

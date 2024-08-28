@@ -2,7 +2,7 @@ import fs from 'fs';
 import cmd from 'node-cmd';
 import path from 'path';
 
-import { typesPath } from '../../constants';
+import { outputPath } from '../../constants';
 import { IConfig } from '../../types';
 
 const types = (config: IConfig, next: (entryName: string, done: boolean) => void) => {
@@ -10,8 +10,18 @@ const types = (config: IConfig, next: (entryName: string, done: boolean) => void
     const { entries } = config.exposes;
 
     entries.forEach((entry, index) => {
-        const entryFolderPath = path.join(typesPath, entry.name);
+        const entryFolderPath = path.join(outputPath, 'ts', entry.name);
         fs.mkdirSync(entryFolderPath, { recursive: true });
+
+        const getPath = () => {
+            const splitPath = entry.target.split('/');
+
+            if (splitPath.pop() === 'index.ts' || splitPath.pop() === 'index.tsx') {
+                return splitPath.join('/');
+            }
+
+            return entry.target;
+        };
 
         const tsConfig = {
             compilerOptions: {
@@ -19,12 +29,13 @@ const types = (config: IConfig, next: (entryName: string, done: boolean) => void
                 declaration: true,
                 emitDeclarationOnly: true,
             },
-            include: Object.values(entry.targets).map((i) => `../../../${i}`),
+            include: [`../../../../${getPath()}`],
         };
 
-        const tsconfigPath = path.join(typesPath, entry.name, 'tsconfig.json');
-        fs.writeFileSync(path.join(entryFolderPath, 'tsconfig.json'), JSON.stringify(tsConfig, null, 2));
-        cmd.run(`tsc --project ${tsconfigPath}`, async () => {
+        const tsconfigPath = path.join(outputPath, 'ts', entry.name, 'tsconfig.json');
+
+        fs.writeFileSync(tsconfigPath, JSON.stringify(tsConfig, null, 2));
+        cmd.run(`tsc -p ${tsconfigPath}`, async () => {
             fs.unlinkSync(tsconfigPath);
             // await zip.archiveFolder(entryFolderPath, `${entryFolderPath}.zip`);
             // fs.rmSync(entryFolderPath, { recursive: true, force: true });
