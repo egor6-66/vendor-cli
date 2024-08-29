@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import { esbuildPath, resourcesName } from '../../constants';
+import { esbuildPath, outputPath, resourcesName } from '../../constants';
 import { IConfig } from '../../types';
 import { status } from '../../utils';
 
@@ -10,6 +10,14 @@ const esbuild = (config: IConfig, next: () => void) => {
 
     const platform = config.platform;
     const { entries, minify = true, sourcemap } = config.exposes;
+    const folders = ['css', 'js', 'ts', 'files'];
+
+    folders.forEach((folder) => {
+        const fullPath = path.join(outputPath, folder);
+        fs.rm(fullPath, { recursive: true }, () => {
+            fs.mkdirSync(fullPath, { recursive: true });
+        });
+    });
 
     const entryPoints = entries.reduce(
         (acc, entry, entriesIndex) => {

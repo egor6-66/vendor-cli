@@ -1,3 +1,4 @@
+import fs from 'fs';
 import cmd from 'node-cmd';
 import path from 'path';
 
@@ -28,7 +29,25 @@ class Build {
 
     buildTypes(config: IConfig) {
         createFile.types(config).then((chunks) => {
-            chunks?.length && this.showSize(chunks);
+            if (chunks?.length) {
+                this.moveCss();
+                this.showSize(chunks);
+            }
+        });
+    }
+
+    moveCss() {
+        const jsFolderPath = path.join(outputPath, 'js');
+        const cssFolderPath = path.join(outputPath, 'css');
+        fs.readdir(jsFolderPath, function (err, files) {
+            files
+                .filter((el) => el.match(/^(.*?)\.css/))
+                .forEach((file) => {
+                    console.log(file);
+                    fs.cp(path.join(jsFolderPath, file), path.join(cssFolderPath, file), () => {
+                        fs.unlinkSync(path.join(jsFolderPath, file));
+                    });
+                });
         });
     }
 
