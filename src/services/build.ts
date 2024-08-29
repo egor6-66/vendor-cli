@@ -1,11 +1,9 @@
-import fs from 'fs';
 import cmd from 'node-cmd';
 import path from 'path';
 
-import { outputPath } from '../constants';
+import { outputJsPath, outputTsPath } from '../constants';
 import { IConfig } from '../types';
-import { createFile } from '../utils';
-import { getSize, status } from '../utils';
+import { createFile, getSize, status } from '../utils';
 
 class Build {
     constructor(config: IConfig) {
@@ -14,9 +12,10 @@ class Build {
 
     buildScripts(config: IConfig) {
         if (config.exposes?.entries.length) {
-            status.success(` ⏳ compiling started⏳ `.toUpperCase());
+            status.success(`⏳ compiling started⏳ `.toUpperCase());
+            createFile.description(config);
             createFile.esbuild(config, () => {
-                cmd.run(`ts-node .vendor/_utils/esbuild`, async (error, e, f) => {
+                cmd.run(`ts-node .vendor/_utils/esbuild.ts`, (error) => {
                     if (error) {
                         status.error(`Failed to build scripts ${error}`);
                     } else {
@@ -30,36 +29,18 @@ class Build {
     buildTypes(config: IConfig) {
         createFile.types(config).then((chunks) => {
             if (chunks?.length) {
-                this.moveCss();
-                this.showSize(chunks);
+                // this.showSize(chunks);
             }
-        });
-    }
-
-    moveCss() {
-        const jsFolderPath = path.join(outputPath, 'js');
-        const cssFolderPath = path.join(outputPath, 'css');
-        fs.readdir(jsFolderPath, function (err, files) {
-            files
-                .filter((el) => el.match(/^(.*?)\.css/))
-                .forEach((file) => {
-                    console.log(file);
-                    fs.cp(path.join(jsFolderPath, file), path.join(cssFolderPath, file), () => {
-                        fs.unlinkSync(path.join(jsFolderPath, file));
-                    });
-                });
         });
     }
 
     showSize(chunks: Array<string>) {
         Promise.all(
             chunks.map(async (chunk) => {
-                const jsSize = getSize.file(path.join(outputPath, 'js', `${chunk}.js`));
-                const cssSize = getSize.file(path.join(outputPath, 'css', `${chunk}.css`));
-                const typesSize = await getSize.dir(path.join(outputPath, 'ts', chunk));
-                status.info(`⚖️ ${chunk} size `, '');
+                const jsSize = getSize.file(path.join(outputJsPath, `${chunk}.js`));
+                const typesSize = await getSize.dir(path.join(outputTsPath, chunk));
+                status.info(`⚖️ ${chunk} sizes `, '');
                 jsSize && status.info('\tjs =>', jsSize);
-                cssSize && status.info('\tcss =>', cssSize);
                 typesSize && status.info('\ttypes =>', typesSize);
             })
         ).then(() => {

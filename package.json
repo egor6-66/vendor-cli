@@ -14,6 +14,7 @@
     "start": "tsc -w",
     "build": "tsc",
     "esbuild:build": "ts-node esbuild",
+    "start-server": "ts-node src/server",
     "pub": "npm run build && npm version patch && git push origin main && npm publish"
   },
   "dependencies": {

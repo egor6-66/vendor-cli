@@ -2,7 +2,7 @@ import fs from 'fs';
 import cmd from 'node-cmd';
 import path from 'path';
 
-import { outputPath } from '../../constants';
+import { outputTsPath } from '../../constants';
 import { IConfig } from '../../types';
 
 const types = async (config: IConfig): Promise<Array<string> | null> => {
@@ -12,18 +12,9 @@ const types = async (config: IConfig): Promise<Array<string> | null> => {
     return (await Promise.all(
         entries.map((entry) => {
             return new Promise((resolve, reject) => {
-                const entryFolderPath = path.join(outputPath, 'ts', entry.name);
+                const entryFolderPath = path.join(outputTsPath, entry.name);
+                console.log(entryFolderPath);
                 fs.mkdirSync(entryFolderPath, { recursive: true });
-
-                const getPath = () => {
-                    const splitPath = entry.target.split('/');
-
-                    if (splitPath.pop() === 'index.ts' || splitPath.pop() === 'index.tsx') {
-                        return splitPath.join('/');
-                    }
-
-                    return entry.target;
-                };
 
                 const tsConfig = {
                     compilerOptions: {
@@ -37,15 +28,15 @@ const types = async (config: IConfig): Promise<Array<string> | null> => {
                         moduleResolution: 'bundler',
                         module: 'esnext',
                     },
-                    include: [`../../../../${getPath()}`],
+                    include: [`../../../../${entry.target}`],
                 };
 
-                const tsconfigPath = path.join(outputPath, 'ts', entry.name, 'tsconfig.json');
+                const tsconfigPath = path.join(outputTsPath, entry.name, 'tsconfig.json');
 
                 fs.writeFileSync(tsconfigPath, JSON.stringify(tsConfig, null, 2));
                 cmd.run(`tsc -p ${tsconfigPath}`, async (error) => {
-                    fs.unlinkSync(tsconfigPath);
-                    error ? reject() : resolve(entry.name);
+                    // fs.unlinkSync(tsconfigPath);
+                    resolve(entry.name);
                     // await zip.archiveFolder(entryFolderPath, `${entryFolderPath}.zip`);
                     // fs.rmSync(entryFolderPath, { recursive: true, force: true });
                 });

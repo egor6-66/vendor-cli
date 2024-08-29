@@ -8,6 +8,7 @@ import Commands from './services';
 yargs(hideBin(process.argv))
     .command(Commands.init)
     .command(Commands.build)
-    // .command(Commands.run)
+    .command(Commands.devServer)
+    // .command(Commands.devServer)
     .demandCommand()
     .help().argv;

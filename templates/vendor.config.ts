@@ -9,6 +9,7 @@ module.exports = {
                 version: 1,
                 name: 'example',
                 target: './example/index.ts',
+                deps: [],
             },
         ],
     },

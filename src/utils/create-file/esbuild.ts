@@ -10,7 +10,7 @@ const esbuild = (config: IConfig, next: () => void) => {
 
     const platform = config.platform;
     const { entries, minify = true, sourcemap } = config.exposes;
-    const folders = ['css', 'js', 'ts', 'files'];
+    const folders = ['js', 'ts', 'files'];
 
     folders.forEach((folder) => {
         const fullPath = path.join(outputPath, folder);
@@ -42,6 +42,16 @@ const esbuild = (config: IConfig, next: () => void) => {
         { entries: '', chunks: [] } as { entries: string; chunks: Array<string> }
     );
 
+    const json = require(path.resolve('package.json'));
+
+    const external = ['devDependencies', 'dependencies'].reduce((acc, i) => {
+        Object.keys(json[i]).forEach((libName) => {
+            acc += `'${libName}', `;
+        });
+
+        return acc;
+    }, '' as string);
+
     const rows = [
         "const Esbuild = require('esbuild');",
         "const path = require('path'); \n",
@@ -54,6 +64,9 @@ const esbuild = (config: IConfig, next: () => void) => {
         `\t minify: ${minify},`,
         `\t sourcemap: ${!!sourcemap},`,
         `\t tsconfig: path.resolve('tsconfig.json'),`,
+        `\t jsx: 'automatic',`,
+        `\t format: 'esm',`,
+        `\t external: [${external}]`,
         '})',
     ];
 
@@ -68,6 +81,7 @@ const esbuild = (config: IConfig, next: () => void) => {
             });
         }
     });
+
     next();
 };
 
