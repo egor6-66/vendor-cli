@@ -8,7 +8,7 @@ const file = (filePath: string) => {
     }
 };
 
-const dir = async (dirPath: string, end = true) => {
+const dir = async (dirPath: string, end = true): Promise<string> => {
     const files = await fs.promises.readdir(dirPath, { withFileTypes: true });
 
     const paths = files.map(async (file) => {
@@ -25,9 +25,9 @@ const dir = async (dirPath: string, end = true) => {
         return 0;
     });
 
-    const bytes = (await Promise.all(paths)).flat(Infinity).reduce((i, size) => i + size, 0);
+    const bytes: string | number = (await Promise.all(paths)).flat(Infinity).reduce((i, size) => +i + +size, 0);
 
-    return end ? bytesToSize(+bytes) : bytes;
+    return (end ? bytesToSize(+bytes) : String(bytes)) as string;
 };
 
 function bytesToSize(bytes: number) {

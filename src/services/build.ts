@@ -8,32 +8,43 @@ import { getSize, status } from '../utils';
 
 class Build {
     constructor(config: IConfig) {
-        this.buildScripts(config, () => {
-            this.buildTypes(config);
-        });
+        this.buildScripts(config);
     }
 
-    buildScripts(config: IConfig, next: () => void) {
+    buildScripts(config: IConfig) {
         if (config.exposes?.entries.length) {
+            status.success(` ⏳ compiling started⏳ `.toUpperCase());
             createFile.esbuild(config, () => {
-                cmd.run(`ts-node .vendor/_utils/esbuild`, async (error) => {
-                    error ? status.error(`Failed to build scripts ${error}`) : next();
+                cmd.run(`ts-node .vendor/_utils/esbuild`, async (error, e, f) => {
+                    if (error) {
+                        status.error(`Failed to build scripts ${error}`);
+                    } else {
+                        this.buildTypes(config);
+                    }
                 });
             });
         }
     }
 
     buildTypes(config: IConfig) {
-        status.success(` ⏳ compiling started⏳ `.toUpperCase());
-        createFile.types(config, async (entryName, done) => {
-            const jsSize = getSize.file(path.join(outputPath, 'js', `${entryName}.js`));
-            const cssSize = getSize.file(path.join(outputPath, 'css', `${entryName}.css`));
-            const typesSize = await getSize.dir(path.join(outputPath, 'ts', entryName));
-            status.info(`⚖️ ${entryName} size `, '');
-            jsSize && status.info('\tjs =>', jsSize);
-            cssSize && status.info('\tcss =>', cssSize);
-            typesSize && status.info('\ttypes =>', typesSize);
-            done && status.success(`👌Compiled successful👌 `.toUpperCase());
+        createFile.types(config).then((chunks) => {
+            chunks?.length && this.showSize(chunks);
+        });
+    }
+
+    showSize(chunks: Array<string>) {
+        Promise.all(
+            chunks.map(async (chunk) => {
+                const jsSize = getSize.file(path.join(outputPath, 'js', `${chunk}.js`));
+                const cssSize = getSize.file(path.join(outputPath, 'css', `${chunk}.css`));
+                const typesSize = await getSize.dir(path.join(outputPath, 'ts', chunk));
+                status.info(`⚖️ ${chunk} size `, '');
+                jsSize && status.info('\tjs =>', jsSize);
+                cssSize && status.info('\tcss =>', cssSize);
+                typesSize && status.info('\ttypes =>', typesSize);
+            })
+        ).then(() => {
+            status.success(`👌Compiled successful👌 `.toUpperCase());
         });
     }
 }

@@ -26,7 +26,7 @@ const esbuild = (config: IConfig, next: () => void) => {
             const start = entriesIndex === 0;
             const end = entriesIndex === entries.length - 1;
             const entryObj = `{ in: path.resolve('${target}'), out: '${name}'}`;
-            acc.chunks.push(target);
+            acc.chunks.push(name);
             acc.entries += `${start ? '[' : ''} \n \t\t ${entryObj}, ${end ? '\n\t]' : ''}`;
 
             return acc;
