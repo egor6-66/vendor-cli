@@ -1,21 +1,18 @@
 import cmd from 'node-cmd';
 import path from 'path';
 
-import {} from '../constants';
-import { IConfig } from '../types';
+import { outputPath } from '../constants';
+import { IBuildArgs, IConfig } from '../types';
 import { createFile, getSize, status } from '../utils';
 
-interface IArgs {
-    static: boolean;
-    port: number;
-}
+import Server from './server';
 
 class Build {
-    args!: IArgs;
+    args!: IBuildArgs;
 
     config!: IConfig;
 
-    constructor(config: IConfig, args: IArgs) {
+    constructor(config: IConfig, args: IBuildArgs) {
         this.args = args;
         this.config = config;
         this.buildScripts();
@@ -38,31 +35,27 @@ class Build {
     }
 
     buildTypes() {
-        createFile.types(this.config).then((chunks) => {
-            if (chunks?.length) {
-                this.showSize(chunks);
-            }
-        });
+        createFile
+            .types(this.config)
+            .then((entryNames) => {
+                if (entryNames?.length) {
+                    this.showSize(entryNames);
+                }
+            })
+            .catch((error: string) => {
+                status.error(error);
+            });
     }
 
-    showSize(chunks: Array<string>) {
+    showSize(entryNames: Array<string>) {
         Promise.all(
-            chunks.map(async (chunk) => {
-                // const jsSize = getSize.file(path.join(outputJsPath, `${chunk}.js`));
-                // const typesSize = await getSize.dir(path.join(outputTsPath, chunk));
-                status.info(`⚖️ ${chunk} sizes `, '');
-                // jsSize && status.info('\tjs =>', jsSize);
-                // typesSize && status.info('\ttypes =>', typesSize);
+            entryNames.map(async (name) => {
+                const size = await getSize.dir(path.join(outputPath, name));
+                status.info(`⚖️ ${name} sizes =>`, size);
             })
         ).then(() => {
             status.success(`👌Compiled successful👌 `);
-
-            if (this.args.static) {
-                const port = this.args.port || 8888;
-                const serverPath = path.join(__dirname, '../', 'server', 'index.js');
-                status.success(`🚀Static server started on port ${port}🚀 `);
-                cmd.runSync(`ts-node ${serverPath} --port=${port}`);
-            }
+            new Server(this.args);
         });
     }
 }

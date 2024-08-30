@@ -35,10 +35,7 @@ const types = async (config: IConfig): Promise<Array<string> | null> => {
 
                 fs.writeFileSync(tsconfigPath, JSON.stringify(tsConfig, null, 2));
                 cmd.run(`tsc -p ${tsconfigPath}`, async (error) => {
-                    // fs.unlinkSync(tsconfigPath);
-                    resolve(entry.name);
-                    // await zip.archiveFolder(entryFolderPath, `${entryFolderPath}.zip`);
-                    // fs.rmSync(entryFolderPath, { recursive: true, force: true });
+                    error ? reject(error) : resolve(entry.name);
                 });
             });
         })

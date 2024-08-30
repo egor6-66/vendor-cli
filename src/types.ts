@@ -16,3 +16,9 @@ export interface IConfig {
     exposes?: IExposes;
     remotes?: IRemotes;
 }
+
+export interface IBuildArgs {
+    serverstatic: boolean;
+    port: number;
+    pm2: boolean;
+}
