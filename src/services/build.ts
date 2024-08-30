@@ -1,3 +1,4 @@
+import { exec } from 'child_process';
 import cmd from 'node-cmd';
 import path from 'path';
 
@@ -19,18 +20,23 @@ class Build {
     }
 
     buildScripts() {
-        if (this.config.exposes?.entries.length) {
+        if (this.config.expose?.entries.length) {
             status.success(`⏳ compiling started⏳ `);
             createFile.description(this.config);
-            createFile.esbuild(this.config, () => {
-                cmd.run(`ts-node .vendor/_utils/esbuild`, (error) => {
-                    if (error) {
-                        status.error(`Failed to build scripts ${error}`);
-                    } else {
-                        this.buildTypes();
-                    }
+            this.args.watch && createFile.esbuildWatcher();
+            createFile.esbuildConfig(this.config, () => {
+                createFile.esbuild(this.config, () => {
+                    cmd.run(`ts-node .vendor/_utils/esbuild`, (error) => {
+                        if (error) {
+                            status.error(`Failed to build scripts ${error}`);
+                        } else {
+                            this.buildTypes();
+                        }
+                    });
                 });
             });
+        } else {
+            status.error(`there are no "exposes" field in the config`);
         }
     }
 
@@ -39,7 +45,7 @@ class Build {
             .types(this.config)
             .then((entryNames) => {
                 if (entryNames?.length) {
-                    this.showSize(entryNames);
+                    this.finish(entryNames);
                 }
             })
             .catch((error: string) => {
@@ -47,7 +53,7 @@ class Build {
             });
     }
 
-    showSize(entryNames: Array<string>) {
+    finish(entryNames: Array<string>) {
         Promise.all(
             entryNames.map(async (name) => {
                 const size = await getSize.dir(path.join(outputPath, name));
@@ -55,7 +61,16 @@ class Build {
             })
         ).then(() => {
             status.success(`👌Compiled successful👌 `);
-            new Server(this.args);
+
+            if (this.args.runServer) {
+                Server.staticServer(this.args);
+            }
+
+            if (this.args.watch) {
+                status.success(`👀 Watcher running 👀 `);
+                exec('ts-node .vendor/_utils/esbuild/watcher.ts');
+                Server.staticServer(this.args);
+            }
         });
     }
 }

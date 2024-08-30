@@ -6,6 +6,7 @@ import { status } from '../utils';
 
 import Build from './build';
 import Init from './init';
+import Take from './take';
 
 class Commands {
     private readonly config!: IConfig;
@@ -13,6 +14,12 @@ class Commands {
     constructor() {
         if (fs.existsSync(configPath)) {
             this.config = require(configPath);
+        }
+    }
+
+    checkConfig() {
+        if (!this.config) {
+            status.error('config file not found');
         }
     }
 
@@ -30,11 +37,16 @@ class Commands {
     build = {
         command: 'build',
         handler: (args: any) => {
-            if (!this.config) {
-                status.error('config file not found');
-            }
-
+            this.checkConfig();
             new Build(this.config, args);
+        },
+    };
+
+    take = {
+        command: 'take',
+        handler: (args: any) => {
+            this.checkConfig();
+            new Take(this.config, args);
         },
     };
 

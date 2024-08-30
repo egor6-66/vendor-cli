@@ -1,7 +1,7 @@
 module.exports = {
     platform: 'browser' | 'node',
     zipPass: process.env.ZIP_PASS,
-    exposes: {
+    expose: {
         minify: true,
         sourcemap: true,
         entries: [
@@ -13,7 +13,7 @@ module.exports = {
             },
         ],
     },
-    remotes: {
+    remote: {
         host: process.env.REMOTE_HOST,
         entries: [
             {

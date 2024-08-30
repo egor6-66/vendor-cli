@@ -15,4 +15,6 @@ export const outputPath = path.join(resourcesPath, 'output');
 export const descriptionPath = path.join(outputPath, 'description.ts');
 
 export const esbuildFolderPath = path.join(utilsPath, 'esbuild');
+export const esbuildConfigPath = path.join(esbuildFolderPath, 'config.ts');
+export const esbuildWatcherPath = path.join(esbuildFolderPath, 'watcher.ts');
 export const esbuildPath = path.join(esbuildFolderPath, 'index.ts');

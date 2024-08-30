@@ -9,6 +9,7 @@ yargs(hideBin(process.argv))
     .command(Commands.init)
     .command(Commands.build)
     .command(Commands.devServer)
-    // .command(Commands.devServer)
+    .command(Commands.take)
+    // .command(Commands.take)
     .demandCommand()
     .help().argv;

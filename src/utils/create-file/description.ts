@@ -6,7 +6,7 @@ import { IConfig } from '../../types';
 import { status } from '../../utils';
 
 const description = (config: IConfig) => {
-    if (!config.exposes?.entries?.length) return null;
+    if (!config.expose?.entries?.length) return null;
 
     const rows = ["const Esbuild = require('esbuild');", "const path = require('path'); \n"];
 

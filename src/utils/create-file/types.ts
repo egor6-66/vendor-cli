@@ -6,8 +6,8 @@ import { outputPath } from '../../constants';
 import { IConfig } from '../../types';
 
 const types = async (config: IConfig): Promise<Array<string> | null> => {
-    if (!config.exposes?.entries?.length) return null;
-    const { entries } = config.exposes;
+    if (!config.expose?.entries?.length) return null;
+    const { entries } = config.expose;
 
     return (await Promise.all(
         entries.map((entry) => {
