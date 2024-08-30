@@ -5,7 +5,6 @@ import { IConfig } from '../types';
 import { status } from '../utils';
 
 import Build from './build';
-import DevServer from './devServer';
 import Init from './init';
 
 class Commands {
@@ -30,12 +29,12 @@ class Commands {
 
     build = {
         command: 'build',
-        handler: () => {
+        handler: (args: any) => {
             if (!this.config) {
                 status.error('config file not found');
             }
 
-            new Build(this.config);
+            new Build(this.config, args);
         },
     };
 
@@ -46,7 +45,7 @@ class Commands {
                 status.error('config file not found');
             }
 
-            new DevServer(this.config);
+            // new DevServer(this.config);
         },
     };
 }

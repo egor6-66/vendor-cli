@@ -2,7 +2,7 @@ import fs from 'fs';
 import cmd from 'node-cmd';
 import path from 'path';
 
-import { outputTsPath } from '../../constants';
+import { outputPath } from '../../constants';
 import { IConfig } from '../../types';
 
 const types = async (config: IConfig): Promise<Array<string> | null> => {
@@ -12,13 +12,13 @@ const types = async (config: IConfig): Promise<Array<string> | null> => {
     return (await Promise.all(
         entries.map((entry) => {
             return new Promise((resolve, reject) => {
-                const entryFolderPath = path.join(outputTsPath, entry.name);
-                console.log(entryFolderPath);
+                const entryFolderPath = path.join(outputPath, entry.name);
+
                 fs.mkdirSync(entryFolderPath, { recursive: true });
 
                 const tsConfig = {
                     compilerOptions: {
-                        outDir: './',
+                        outDir: `./types`,
                         declaration: true,
                         emitDeclarationOnly: true,
                         esModuleInterop: true,
@@ -28,10 +28,10 @@ const types = async (config: IConfig): Promise<Array<string> | null> => {
                         moduleResolution: 'bundler',
                         module: 'esnext',
                     },
-                    include: [`../../../../${entry.target}`],
+                    include: [`../../../${entry.target}`],
                 };
 
-                const tsconfigPath = path.join(outputTsPath, entry.name, 'tsconfig.json');
+                const tsconfigPath = path.join(outputPath, entry.name, 'tsconfig.json');
 
                 fs.writeFileSync(tsconfigPath, JSON.stringify(tsConfig, null, 2));
                 cmd.run(`tsc -p ${tsconfigPath}`, async (error) => {

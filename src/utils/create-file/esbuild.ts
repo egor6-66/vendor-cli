@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import { esbuildPath, outputPath, resourcesName } from '../../constants';
+import { esbuildPath, outputPath } from '../../constants';
 import { IConfig } from '../../types';
 import { status } from '../../utils';
 
@@ -10,14 +10,8 @@ const esbuild = (config: IConfig, next: () => void) => {
 
     const platform = config.platform;
     const { entries, minify = true, sourcemap } = config.exposes;
-    const folders = ['js', 'ts', 'files'];
 
-    folders.forEach((folder) => {
-        const fullPath = path.join(outputPath, folder);
-        fs.rm(fullPath, { recursive: true }, () => {
-            fs.mkdirSync(fullPath, { recursive: true });
-        });
-    });
+    fs.rm(outputPath, { recursive: true }, () => '');
 
     const entryPoints = entries.reduce(
         (acc, entry, entriesIndex) => {
@@ -33,7 +27,7 @@ const esbuild = (config: IConfig, next: () => void) => {
 
             const start = entriesIndex === 0;
             const end = entriesIndex === entries.length - 1;
-            const entryObj = `{ in: path.resolve('${target}'), out: '${name}'}`;
+            const entryObj = `{ in: path.resolve('${target}'), out: '${name}/${name}'}`;
             acc.chunks.push(name);
             acc.entries += `${start ? '[' : ''} \n \t\t ${entryObj}, ${end ? '\n\t]' : ''}`;
 
@@ -54,9 +48,10 @@ const esbuild = (config: IConfig, next: () => void) => {
 
     const rows = [
         "const Esbuild = require('esbuild');",
+        "const cssModulesPlugin = require('./plugins/cssModules'); \n",
         "const path = require('path'); \n",
         'module.exports = Esbuild.build({',
-        `\t outdir: path.resolve('${resourcesName}', 'output', 'js'),`,
+        `\t outdir: path.resolve('.vendor', 'output'),`,
         `\t entryPoints: ${entryPoints.entries},`,
         '\t bundle: true,',
         `\t platform: '${platform}',`,
@@ -66,13 +61,10 @@ const esbuild = (config: IConfig, next: () => void) => {
         `\t tsconfig: path.resolve('tsconfig.json'),`,
         `\t jsx: 'automatic',`,
         `\t format: 'esm',`,
-        `\t external: [${external}]`,
+        `\t external: [${external}],`,
+        // `\t plugins: [cssModulesPlugin()]`,
         '})',
     ];
-
-    if (fs.existsSync(esbuildPath)) {
-        fs.unlinkSync(esbuildPath);
-    }
 
     fs.open(esbuildPath, 'w', (err) => {
         if (!err) {
@@ -86,3 +78,30 @@ const esbuild = (config: IConfig, next: () => void) => {
 };
 
 export default esbuild;
+// module.exports = esbuild
+//     .context({
+//         outdir: path.resolve('.vendor', 'output', 'js'),
+//         entryPoints: [{ in: path.resolve('src/components/index.ts'), out: 'components' }],
+//         bundle: true,
+//         platform: 'browser',
+//         treeShaking: true,
+//         minify: false,
+//         sourcemap: true,
+//         tsconfig: path.resolve('tsconfig.json'),
+//         jsx: 'automatic',
+//         format: 'esm',
+//         external: ['@types/react-dom', 'esbuild', 'ts-node', 'typescript', 'framer-motion', 'react', 'react-dom'],
+//     })
+//     .then((r: any) => {
+//         console.log('✨ Build succeeded.');
+//
+//         r.watch();
+//         console.log('watching...');
+//     })
+//     .catch(() => process.exit(1));
+// {
+//     version: 1,
+//         name: 'components',
+//     target: 'src/components/index.ts',
+//     deps: ['react'],
+// },

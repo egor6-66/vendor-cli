@@ -2,7 +2,7 @@ import chalk from 'chalk';
 
 export default {
     success: (message: string, exit?: boolean) => {
-        console.log(chalk.bold.green(message));
+        console.log(chalk.bold.green(message.toUpperCase()));
         if (exit) process.exit();
     },
     warning: (message: string) => {

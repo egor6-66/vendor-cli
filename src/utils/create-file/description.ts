@@ -10,10 +10,6 @@ const description = (config: IConfig) => {
 
     const rows = ["const Esbuild = require('esbuild');", "const path = require('path'); \n"];
 
-    if (fs.existsSync(esbuildPath)) {
-        fs.unlinkSync(esbuildPath);
-    }
-
     fs.open(descriptionPath, 'w', (err) => {
         if (!err) {
             rows.forEach((row) => {
