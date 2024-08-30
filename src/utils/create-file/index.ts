@@ -4,4 +4,6 @@ import esbuildConfig from './esbuildConfig';
 import esbuildWatcher from './esbuildWatcher';
 import types from './types';
 
-export { description, esbuild, esbuildConfig, esbuildWatcher, types };
+import css from './css';
+
+export { css, description, esbuild, esbuildConfig, esbuildWatcher, types };
