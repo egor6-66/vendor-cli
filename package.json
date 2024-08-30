@@ -50,6 +50,6 @@
     "dist"
   ],
   "bin": {
-    "vendor": "src/index.js"
+    "vendor": "dist/index.js"
   }
 }
