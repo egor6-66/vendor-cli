@@ -83,7 +83,7 @@ class FilesCreator {
                         fs.appendFileSync(paths.esbuildConfig, `${row}\n`);
                     });
                     message('success', '🛠️Esbuild config compiled🛠️');
-                    resolve();
+                    resolve('');
                 } else {
                     message('error', String(err));
                     reject();
@@ -92,11 +92,9 @@ class FilesCreator {
         });
     }
 
-    async types(config: interfaces.IConfig, watch: boolean) {
-        const { entries } = config.expose;
-
-        return await Promise.all(
-            entries.map((entry) => {
+    async types(config: interfaces.IConfig, watch: boolean): Promise<Array<string>> {
+        return (await Promise.all(
+            config.expose.entries.map((entry) => {
                 return new Promise((resolve, reject) => {
                     const entryFolderPath = path.join(paths.output, entry.name);
 
@@ -136,7 +134,7 @@ class FilesCreator {
                     });
                 });
             })
-        );
+        )) as string[];
     }
 }
 
