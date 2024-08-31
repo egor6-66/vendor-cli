@@ -1,6 +1,8 @@
-import * as createFile from './create-file';
-import getArgs from './getArgs';
+import cmd from './cmd';
+import * as constants from './constants';
 import * as getSize from './getSize';
-import status from './status';
+import * as interfaces from './interfaces';
+import message from './message';
+import * as paths from './paths';
 
-export { createFile, getArgs, getSize, status };
+export { cmd, constants, getSize, interfaces, message, paths };

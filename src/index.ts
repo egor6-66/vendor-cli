@@ -1,15 +1,25 @@
 #! /usr/bin/env node
 
-import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers';
+const { Command } = require('commander');
+const program = new Command();
+import * as services from './services';
 
-import Commands from './services';
+(() => {
+    program
+        .command('init')
+        .action(() => {
+            services.FilesCreator.configAndWorkingDirs();
+        })
+        .description('Creating config and working directories.');
 
-yargs(hideBin(process.argv))
-    .command(Commands.init)
-    .command(Commands.build)
-    .command(Commands.devServer)
-    .command(Commands.take)
-    // .command(Commands.take)
-    .demandCommand()
-    .help().argv;
+    program
+        .command('build')
+        .option('--watch', 'Tracks changes in files.')
+        .option('--server', 'Starts a server for distributing static content.')
+        .action((args) => {
+            new services.Builder(args);
+        })
+        .description('Compiles all the packages you want to expose.');
+
+    program.parse(process.argv);
+})();

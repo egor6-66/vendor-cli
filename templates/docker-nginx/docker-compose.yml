@@ -2,13 +2,13 @@ services:
   app:
     container_name: app
     build:
-      context: .
+      context: ..
     working_dir: /app
     restart: always
   nginx:
     container_name: nginx-static-server
     build:
-      context: .
+      context: ..
     ports:
       - "80:80"
     restart: always

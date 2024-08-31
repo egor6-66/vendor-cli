@@ -1,6 +1,7 @@
-module.exports = {
-    platform: 'browser' | 'node',
-    zipPass: process.env.ZIP_PASS,
+import { IConfig } from '.vendor/_utils/interfaces';
+
+const config: IConfig = {
+    platform: 'browser',
     expose: {
         minify: true,
         sourcemap: true,
@@ -14,7 +15,7 @@ module.exports = {
         ],
     },
     remote: {
-        host: process.env.REMOTE_HOST,
+        host: 'http://localhost:3000',
         entries: [
             {
                 version: 1,
@@ -23,3 +24,5 @@ module.exports = {
         ],
     },
 };
+
+export default config;
