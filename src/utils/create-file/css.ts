@@ -14,11 +14,11 @@ function css(config: IConfig) {
     }, '');
 
     const fullPath = path.join(publicCssPath, 'index.css');
-    // fs.open(fullPath, 'w', (err) => {
-    //     if (!err) {
-    //         fs.appendFileSync(fullPath, rows as string);
-    //     }
-    // });
+    fs.open(fullPath, 'w', (err) => {
+        if (!err) {
+            fs.appendFileSync(fullPath, rows as string);
+        }
+    });
 }
 
 export default css;
