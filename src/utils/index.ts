@@ -1,4 +1,4 @@
-import cmd from './cmd';
+import * as cmd from './cmd';
 import * as constants from './constants';
 import * as getSize from './getSize';
 import * as interfaces from './interfaces';

@@ -92,7 +92,7 @@ class FilesCreator {
         });
     }
 
-    async types(config: interfaces.IConfig) {
+    async types(config: interfaces.IConfig, watch: boolean) {
         const { entries } = config.expose;
 
         return await Promise.all(
@@ -121,9 +121,14 @@ class FilesCreator {
 
                     fs.writeFile(tsconfigPath, JSON.stringify(tsConfig, null, 2), (err) => {
                         if (!err) {
-                            cmd(`tsc -p ${tsconfigPath}`, async ({ error }) => {
-                                error ? reject() : resolve(entry.name);
-                            });
+                            if (watch) {
+                                cmd.separate(`tsc -p ${tsconfigPath} ${watch ? '--watch' : ''}`);
+                                resolve(entry.name);
+                            } else {
+                                cmd.stream(`tsc -p ${tsconfigPath}`, async ({ error }) => {
+                                    error ? reject() : resolve(entry.name);
+                                });
+                            }
                         } else {
                             message('error', String(err));
                             reject();

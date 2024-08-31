@@ -1,5 +1,6 @@
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
+import childProcess, { ChildProcess } from 'child_process';
 
 interface IResult {
     stdout: string;
@@ -7,14 +8,16 @@ interface IResult {
     error: string;
 }
 
-const cmd = async <T>(command: string, cb?: (result: IResult) => T): Promise<T> => {
+const stream = async <T>(command: string, cb?: (result: IResult) => T): Promise<T> => {
     const result = await exec(command);
 
-    if (cb) {
-        return cb(result);
-    }
-
-    return result;
+    return cb ? cb(result) : result;
 };
 
-export default cmd;
+const separate = (command: string, cb?: (result: ChildProcess) => void) => {
+    const result = childProcess.exec(command);
+
+    return cb ? cb(result) : result;
+};
+
+export { separate, stream };

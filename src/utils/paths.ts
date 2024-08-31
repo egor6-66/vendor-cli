@@ -11,4 +11,5 @@ export const compiledConfig = resolve(utils, 'vendor.config.js');
 export const esbuild = join(utils, 'esbuild');
 export const esbuildConfig = join(esbuild, 'config.ts');
 export const configBuilder = join(esbuild, 'configBuilder.ts');
+export const esbuildWatcher = join(esbuild, 'watcher.ts');
 export const esbuildBuilder = join(esbuild, 'builder.ts');
