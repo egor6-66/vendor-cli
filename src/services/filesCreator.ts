@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 
-import { cmd, constants, interfaces, message, paths } from '../utils';
+import { Config } from '../interfaces';
+import { cmd, constants, message, paths } from '../utils';
 
 class FilesCreator {
     private templatesPath = path.join(__dirname, '../', '../', 'templates');
@@ -22,7 +23,7 @@ class FilesCreator {
         message('success', '😎 Initialization was successful 😎');
     }
 
-    async esbuildConfig(config: interfaces.IConfig) {
+    async esbuildConfig(config: Config.IConfig) {
         return new Promise((resolve, reject) => {
             const platform = config.platform;
             const { entries, minify = true, sourcemap } = config.expose;
@@ -92,7 +93,7 @@ class FilesCreator {
         });
     }
 
-    async types(config: interfaces.IConfig, watch: boolean): Promise<Array<string>> {
+    async types(config: Config.IConfig, watch: boolean): Promise<Array<string>> {
         return (await Promise.all(
             config.expose.entries.map((entry) => {
                 return new Promise((resolve, reject) => {

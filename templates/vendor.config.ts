@@ -3,6 +3,7 @@ import { IConfig } from '.vendor/_utils/interfaces';
 const config: IConfig = {
     platform: 'browser',
     expose: {
+        port: process.env.VENDOR_PORT || 8888,
         minify: true,
         sourcemap: true,
         entries: [
@@ -15,6 +16,7 @@ const config: IConfig = {
         ],
     },
     remote: {
+        port: process.env.VENDOR_PORT || 8889,
         host: 'http://localhost:3000',
         entries: [
             {

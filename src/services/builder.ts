@@ -1,7 +1,7 @@
 import path from 'path';
 
+import { Config } from '../interfaces';
 import { cmd, getSize, message, paths } from '../utils';
-import { interfaces } from '../utils';
 
 import FilesCreator from './filesCreator';
 
@@ -13,7 +13,9 @@ interface IArgs {
 class Builder {
     args!: IArgs;
 
-    config!: interfaces.IConfig;
+    config!: Config.IConfig;
+
+    serverPath = path.join(__dirname, '../', 'server', 'index.js');
 
     constructor(args: IArgs) {
         this.args = args;
@@ -30,7 +32,7 @@ class Builder {
     }
 
     async buildConfig() {
-        return await cmd.stream<interfaces.IConfig>(`ts-node ${paths.configBuilder}`, () => {
+        return await cmd.stream<Config.IConfig>(`ts-node ${paths.configBuilder}`, () => {
             return require(paths.compiledConfig).default;
         });
     }
@@ -59,12 +61,19 @@ class Builder {
         ).then(() => {
             message('success', `👌Compiled successful👌`);
             this.args.watch && this.watcher();
+            this.args.server && this.server();
         });
     }
 
     watcher() {
         message('success', `👀 Watcher running 👀`);
         cmd.separate(`ts-node ${paths.esbuildWatcher}`);
+    }
+
+    server() {
+        const port = this.config.expose.port || 8888;
+        message('success', `🚀Server started on PORT ${port}🚀 `);
+        cmd.stream(`ts-node ${this.serverPath} -- --port=${port}`);
     }
 }
 
