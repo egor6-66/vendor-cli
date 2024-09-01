@@ -62,19 +62,22 @@ class FilesCreator {
             }, '' as string);
 
             const rows = [
-                "const path = require('path'); \n",
+                "const path = require('path');",
+                "const plugins = require('./plugins').default; \n",
                 'module.exports = {',
                 `\t outdir: path.resolve('.vendor', 'output'),`,
                 `\t entryPoints: ${entryPoints.entries},`,
                 '\t bundle: true,',
                 `\t platform: '${platform}',`,
                 '\t treeShaking: true,',
+                '\t metafile: true,',
                 `\t minify: ${minify},`,
                 `\t sourcemap: ${!!sourcemap},`,
                 `\t tsconfig: path.resolve('tsconfig.json'),`,
                 `\t jsx: 'automatic',`,
                 `\t format: 'esm',`,
                 `\t external: [${external}],`,
+                `\t plugins: [...plugins],`,
                 '}',
             ];
 
@@ -121,10 +124,10 @@ class FilesCreator {
                     fs.writeFile(tsconfigPath, JSON.stringify(tsConfig, null, 2), (err) => {
                         if (!err) {
                             if (watch) {
-                                cmd.separate(`tsc -p ${tsconfigPath} ${watch ? '--watch' : ''}`);
+                                cmd.execSync(`tsc -p ${tsconfigPath} ${watch ? '--watch' : ''}`);
                                 resolve(entry.name);
                             } else {
-                                cmd.stream(`tsc -p ${tsconfigPath}`, async ({ error }) => {
+                                cmd.exec(`tsc -p ${tsconfigPath}`, async ({ error }) => {
                                     error ? reject() : resolve(entry.name);
                                 });
                             }

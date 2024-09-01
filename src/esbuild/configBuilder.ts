@@ -6,5 +6,6 @@ Esbuild.build({
     entryPoints: [path.resolve('vendor.config.ts')],
     bundle: true,
     platform: 'node',
-    minify: false,
+    minify: true,
+    sourcemap: false,
 });

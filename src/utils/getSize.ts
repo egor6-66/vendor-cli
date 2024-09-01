@@ -44,4 +44,4 @@ function bytesToSize(bytes: number) {
     return `${parseFloat((bytes / Math.pow(kbToBytes, index)).toFixed(0))} ${sizes[index]}`;
 }
 
-export { dir, file };
+export { bytesToSize, dir, file };

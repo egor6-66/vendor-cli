@@ -1,0 +1,12 @@
+services:
+  nginx:
+    container_name: nginx-server
+    build:
+      context: ../../
+      dockerfile: _utils/docker-nginx/Dockerfile
+    volumes:
+      - ../../output:/usr/vendor/output
+      - ../../playground:/usr/vendor/playground
+    ports:
+      - "80:80"
+    restart: always

@@ -1,6 +1,6 @@
 const util = require('util');
-const exec = util.promisify(require('child_process').exec);
-import childProcess, { ChildProcess } from 'child_process';
+const child_process = require('child_process');
+const execPromise = util.promisify(child_process.exec);
 
 interface IResult {
     stdout: string;
@@ -8,16 +8,19 @@ interface IResult {
     error: string;
 }
 
-const stream = async <T>(command: string, cb?: (result: IResult) => T): Promise<T> => {
-    const result = await exec(command);
+const exec = async <T>(command: string, cb?: (result: IResult) => T): Promise<T> => {
+    const result = await execPromise(command);
 
     return cb ? cb(result) : result;
 };
 
-const separate = (command: string, cb?: (result: ChildProcess) => void) => {
-    const result = childProcess.exec(command);
+const execSync = (command: string, listener?: ({ msg, error }: { msg: string; error: string }) => void) => {
+    const result = child_process.exec(command);
 
-    return cb ? cb(result) : result;
+    if (listener) {
+        result.stdout.on('data', (msg) => listener({ msg, error: '' }));
+        result.stdout.on('error', (err) => listener({ msg: '', error: err }));
+    }
 };
 
 const getArgs = () => {
@@ -38,4 +41,4 @@ const getArgs = () => {
     }, {});
 };
 
-export { getArgs, separate, stream };
+export { exec, execSync, getArgs };

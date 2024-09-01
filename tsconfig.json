@@ -5,10 +5,10 @@
     "module": "CommonJS",
     "esModuleInterop": true,
     "moduleResolution": "node",
-    "declaration": false,
+    "declaration": true,
     "declarationMap": false,
     "allowJs": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": true,
     "skipLibCheck": true

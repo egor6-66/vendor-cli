@@ -5,6 +5,7 @@ import { configName, workingDirName } from './constants';
 export const workingDir = resolve(workingDirName);
 export const config = resolve(configName);
 export const utils = join(workingDir, '_utils');
+export const docker = join(utils, 'docker-nginx');
 export const input = join(workingDir, 'input');
 export const output = join(workingDir, 'output');
 
@@ -13,4 +14,5 @@ export const esbuildConfig = join(esbuild, 'config.js');
 export const configBuilder = join(esbuild, 'configBuilder.js');
 export const esbuildWatcher = join(esbuild, 'watcher.js');
 export const esbuildBuilder = join(esbuild, 'builder.js');
-export const compiledConfig = resolve(esbuild, 'vendor.config.js');
+export const compiledConfig = join(esbuild, 'vendor.config.js');
+export const dockerCompose = join(docker, 'docker-compose.yml');
