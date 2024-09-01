@@ -16,11 +16,11 @@
     "pub": "npm run build && npm version patch && git push origin main && npm publish"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
     "@types/node": "^22.5.0",
     "@types/node-cmd": "^5.0.0",
     "@typescript-eslint/eslint-plugin": "^5.42.1",
     "@typescript-eslint/parser": "^5.42.1",
+    "commander": "^12.1.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^5.2.1",
@@ -30,9 +30,7 @@
     "eslint-plugin-unicorn": "^54.0.0",
     "prettier": "^3.3.3",
     "ts-node": "^10.9.1",
-    "typescript": "^5.5.4",
-    "express": "^4.19.2",
-    "commander": "^12.1.0"
+    "typescript": "^5.5.4"
   },
   "repository": {
     "type": "git",
@@ -43,5 +41,8 @@
   ],
   "bin": {
     "vendor": "dist/index.js"
+  },
+  "dependencies": {
+    "esbuild": "^0.23.1"
   }
 }

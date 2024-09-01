@@ -20,26 +20,28 @@ class Builder {
     constructor(args: IArgs) {
         this.args = args;
         message('info', '⏳ Compiling started...⏳');
-        this.buildConfig().then((config) => {
+        this.buildConfig().then(async (config) => {
             if (config) {
                 this.config = config;
 
-                if (config.expose?.entries.length) {
-                    this.buildEntries();
+                if (config?.expose?.entries.length) {
+                    await this.buildEntries();
                 }
             }
         });
     }
 
     async buildConfig() {
-        return await cmd.stream<Config.IConfig>(`ts-node ${paths.configBuilder}`, () => {
+        return await cmd.stream<any>(`ts-node ${paths.configBuilder}`, () => {
             return require(paths.compiledConfig).default;
         });
     }
 
     async buildEntries() {
         await FilesCreator.esbuildConfig(this.config);
-        await cmd.stream(`ts-node ${paths.esbuildBuilder}`, async ({ error }) => {
+        await cmd.stream(`ts-node ${path.join(__dirname, '..', 'esbuild', 'builder.js')}`, async ({ error, stdout }) => {
+            console.log(stdout);
+
             if (error) {
                 message('error', error);
             } else {
@@ -70,10 +72,11 @@ class Builder {
         cmd.separate(`ts-node ${paths.esbuildWatcher}`);
     }
 
-    server() {
+    async server() {
         const port = this.config.expose.port || 8888;
         message('success', `🚀Server started on PORT ${port}🚀 `);
-        cmd.stream(`ts-node ${this.serverPath} -- --port=${port}`);
+        // cmd.stream(`ts-node ${this.serverPath} -- --port=${port}`);
+        await cmd.stream(`docker compose  -f ${paths.utils}/docker-compose.yml up --build -d`);
     }
 }
 

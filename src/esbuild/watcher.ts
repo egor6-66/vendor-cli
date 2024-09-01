@@ -1,5 +1,6 @@
-const Esbuild = require('esbuild');
-const config = require('./config.ts');
+import Esbuild from 'esbuild';
+
+import config from './config';
 
 Esbuild.context(config)
     .then(async (build) => {

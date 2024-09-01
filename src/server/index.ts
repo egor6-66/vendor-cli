@@ -1,5 +1,6 @@
 import path from 'path';
 
+const http = require('http');
 import { Config } from '../interfaces';
 import { cmd, paths } from '../utils';
 
@@ -9,6 +10,14 @@ interface IArgs {
     port: number;
 }
 
-async function bootstrap() {}
+(() => {
+    const args = cmd.getArgs() as IArgs;
 
-bootstrap();
+    const server = http.createServer(function (request: any, response: any) {
+        response.end('Hello METANIT.COM!');
+    });
+
+    server.listen(args, function () {
+        console.log('Сервер запущен по адресу http://localhost:3000');
+    });
+})();

@@ -1,8 +1,8 @@
-const path = require('path');
-const Esbuild = require('esbuild');
+import Esbuild from 'esbuild';
+import path from 'path';
 
 Esbuild.build({
-    outdir: path.resolve('.vendor', '_utils'),
+    outdir: path.join(__dirname),
     entryPoints: [path.resolve('vendor.config.ts')],
     bundle: true,
     platform: 'node',
