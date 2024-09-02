@@ -3,7 +3,7 @@ import path from 'path';
 
 import vendorPlugins from '../esbuild/plugins';
 import { Config } from '../interfaces';
-import { getSize, message } from '../utils';
+import { message } from '../utils';
 
 class Esbuild {
     async buildClientConfig() {

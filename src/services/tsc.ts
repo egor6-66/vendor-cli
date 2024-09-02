@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import { cmd, message, paths } from '../utils';
+import { message, paths } from '../utils';
 
 class Tsc {
     async createTsconfig(entries: Array<{ name: string; path: string; watch: boolean }>) {
@@ -28,12 +28,6 @@ class Tsc {
 
                         fs.writeFile(tsconfigPath, JSON.stringify(tsconfig, null, 2), (err) => {
                             if (!err) {
-                                // cmd.execSync(`tsc -p ${tsconfigPath} ${entry.watch ? '--watch' : ''}`, ({ error }) => {
-                                //     if (error) {
-                                //         message('error', error);
-                                //         reject();
-                                //     }
-                                // });
                                 resolve(entry);
                             } else {
                                 message('error', String(err));

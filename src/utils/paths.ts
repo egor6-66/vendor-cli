@@ -10,9 +10,4 @@ export const input = join(workingDir, 'input');
 export const output = join(workingDir, 'output');
 
 export const esbuild = join(__dirname, '..', 'esbuild');
-export const esbuildConfig = join(esbuild, 'config.js');
-export const configBuilder = join(esbuild, 'configBuilder.js');
-export const esbuildWatcher = join(esbuild, 'watcher.js');
-export const esbuildBuilder = join(esbuild, 'builder.js');
 export const compiledConfig = join(esbuild, 'vendor.config.js');
-export const dockerCompose = join(docker, 'docker-compose.yml');

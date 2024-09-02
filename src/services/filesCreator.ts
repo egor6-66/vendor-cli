@@ -1,8 +1,6 @@
-import { Plugin } from 'esbuild';
 import fs from 'fs';
 import path from 'path';
 
-import { Config } from '../interfaces';
 import { constants, message, paths } from '../utils';
 
 class FilesCreator {

@@ -59,7 +59,7 @@ class Builder {
     async buildEntries(entries: Array<Config.IExposeEntry>) {
         const res = await this.esbuild.build(entries);
 
-        // return await this.tsc.buildTypes(res);
+        return await this.tsc.createTsconfig(res);
     }
 }
 

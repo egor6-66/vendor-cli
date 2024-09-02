@@ -1,3 +1,4 @@
-import rebuildNotify from './rebuild-notify';
+import buildTypes from './buildTypes';
+import rebuildNotify from './rebuildNotify';
 
-export default [rebuildNotify];
+export default [rebuildNotify, buildTypes];

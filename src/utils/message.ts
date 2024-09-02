@@ -10,6 +10,7 @@ const message = (type: MessageType, message: string, exit?: boolean) => {
     const isError = type === 'error';
 
     console.log(colors[type], isError ? `😠 ${message} 😠` : message, '\x1b[0m');
+
     if (exit || isError) process.exit(0);
 };
 

@@ -7,7 +7,7 @@ const rebuildNotify = {
     setup(build: PluginBuild) {
         const entryName = build.initialOptions.entryNames;
         build.onStart(() => {
-            message('info', `${entryName} build...`);
+            message('info', `${entryName} compiling...`);
         });
         build.onEnd((result) => {
             const size = getSize.bytesToSize(Object.values(result.metafile.outputs)[0].bytes);
