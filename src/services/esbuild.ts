@@ -26,7 +26,7 @@ class Esbuild {
         }
     }
 
-    async build(entries: Array<Config.IExposeEntry>): Promise<Array<{ name: string; path: string; watch: boolean }>> {
+    async buildEntries(entries: Array<Config.IExposeEntry>): Promise<Array<{ name: string; path: string; watch: boolean }>> {
         try {
             return await Promise.all(
                 entries.map(async (entry) => {
