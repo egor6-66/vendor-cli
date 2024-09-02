@@ -14,7 +14,6 @@ import * as services from './services';
 
     program
         .command('build')
-        .option('--watch', 'Tracks changes in files.')
         .option('--server', 'Starts a server for distributing static content.')
         .action((args: any) => {
             new services.Builder(args);

@@ -10,8 +10,8 @@
     "allowJs": true,
     "sourceMap": false,
     "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": true,
-    "skipLibCheck": true
+    "noImplicitAny": false,
+    "skipLibCheck": false,
   },
   "ts-node": {
     "compilerOptions": {

@@ -1,69 +1,71 @@
 import path from 'path';
 
 import { Config } from '../interfaces';
-import { cmd, getSize, message, paths } from '../utils';
+import { message, paths } from '../utils';
 
-import FilesCreator from './filesCreator';
+import Esbuild from './esbuild';
+import Tsc from './tsc';
 
 interface IArgs {
-    watch: boolean;
     server: boolean;
 }
 
 class Builder {
     args!: IArgs;
 
-    config!: Config.IConfig;
+    esbuild = new Esbuild();
 
-    serverPath = path.join(__dirname, '../', 'server', 'index.js');
+    tsc = new Tsc();
 
     constructor(args: IArgs) {
         this.args = args;
-        message('info', '⏳ Compiling started...⏳');
-        this.buildConfig().then(async (config) => {
-            if (config) {
-                this.config = config;
+        message('success', '⏳ Compiling started...⏳');
+        this.buildClientConfig();
+    }
 
-                if (config?.expose?.entries.length) {
-                    await this.buildEntries();
-                }
+    buildClientConfig() {
+        this.esbuild.buildClientConfig().then((config) => {
+            if (config?.expose?.entries.length) {
+                this.updateEntries(config);
             }
         });
     }
 
-    async buildConfig() {
-        return await cmd.exec<any>(`ts-node ${paths.configBuilder}`, () => {
-            return require(paths.compiledConfig).default;
-        });
-    }
+    async updateEntries(config: Config.IConfig) {
+        try {
+            const entries = config.expose.entries.map((entry) => {
+                const esbuildConfig = config.expose.config || entry.config;
 
-    async buildEntries() {
-        await FilesCreator.esbuildConfig(this.config);
-        cmd.execSync(`ts-node ${this.args.watch ? paths.esbuildWatcher : paths.esbuildBuilder}`, async ({ msg, error }) => {
-            error && message('error', error);
-        });
-        const entries = await FilesCreator.types(this.config, this.args.watch);
-        entries?.length && this.getSize(entries);
-    }
+                return {
+                    ...entry,
+                    config: {
+                        ...esbuildConfig,
+                        outdir: path.join(paths.output, entry.name),
+                        entryNames: entry.name,
+                        entryPoints: [path.resolve(entry.target)],
+                        bundle: true,
+                        metafile: true,
+                        format: 'esm',
+                    },
+                };
+            });
 
-    getSize(entryNames: Array<string>) {
-        message('info', `-------------sizes-------------`);
-        Promise.all(
-            entryNames.map(async (name) => {
-                const size = await getSize.dir(path.join(paths.output, name));
-                message('info', `⚖️${name} => ${size}⚖️`);
-            })
-        ).then(() => {
-            message('info', `-------------------------------`);
+            const res = await this.buildEntries(entries as Array<Config.IExposeEntry>);
             message('success', `👌Compiled successful👌`);
-            this.args.watch && message('success', `👀 Watcher running 👀`);
-            this.args.server && this.server();
-        });
+            // const watchModules = res.filter((i) => i.watch).map((i) => i.name);
+            //
+            // if (watchModules.length) {
+            //     message('success', `👀 Watching: ${watchModules}. 👀`);
+            // }
+        } catch (e) {
+            message('error', e);
+        }
     }
 
-    server() {
-        cmd.execSync(`docker compose  -f ${paths.dockerCompose} up --build`);
-        message('success', `🚀Server started🚀 `);
+    async buildEntries(entries: Array<Config.IExposeEntry>) {
+        const res = await this.esbuild.build(entries);
+
+        // return await this.tsc.buildTypes(res);
     }
 }
 

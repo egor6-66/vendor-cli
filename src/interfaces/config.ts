@@ -1,8 +1,23 @@
-export interface IExpose {
-    port?: number;
+export interface IEsbuildConfig {
+    platform: 'browser' | 'node';
+    packages?: 'external' | 'bundle';
+    external?: Array<string>;
     minify?: boolean;
     sourcemap?: boolean;
-    entries: Array<{ version: number; name: string; target: string; deps: Array<string> }>;
+    plugins?: Array<any>;
+}
+
+export interface IExposeEntry {
+    version: number;
+    name: string;
+    target: string;
+    watch?: boolean;
+    config?: IEsbuildConfig;
+}
+
+export interface IExpose {
+    config?: IEsbuildConfig;
+    entries: Array<IExposeEntry>;
 }
 
 export interface IRemote {
@@ -11,9 +26,15 @@ export interface IRemote {
     entries: Array<{ host?: string; version: number; name: string }>;
 }
 
+export interface IPlayground {
+    active: boolean;
+    root: string;
+}
+
 export interface IConfig {
     platform: 'browser' | 'node';
     zipPass?: string;
     expose?: IExpose;
     remote?: IRemote;
+    playground?: IPlayground;
 }

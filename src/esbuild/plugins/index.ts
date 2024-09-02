@@ -1,4 +1,3 @@
-import emitterPlugin from './emitter';
-import htmlPlugin from './html';
+import rebuildNotify from './rebuild-notify';
 
-export default [htmlPlugin];
+export default [rebuildNotify];
