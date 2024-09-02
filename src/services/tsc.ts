@@ -4,7 +4,7 @@ import path from 'path';
 import { cmd, message, paths } from '../utils';
 
 class Tsc {
-    async buildTypes(entries: Array<{ name: string; path: string; watch: boolean }>) {
+    async createTsconfig(entries: Array<{ name: string; path: string; watch: boolean }>) {
         try {
             return await Promise.all(
                 entries.map((entry) => {
@@ -28,12 +28,12 @@ class Tsc {
 
                         fs.writeFile(tsconfigPath, JSON.stringify(tsconfig, null, 2), (err) => {
                             if (!err) {
-                                cmd.execSync(`tsc -p ${tsconfigPath} ${entry.watch ? '--watch' : ''}`, ({ error }) => {
-                                    if (error) {
-                                        message('error', error);
-                                        reject();
-                                    }
-                                });
+                                // cmd.execSync(`tsc -p ${tsconfigPath} ${entry.watch ? '--watch' : ''}`, ({ error }) => {
+                                //     if (error) {
+                                //         message('error', error);
+                                //         reject();
+                                //     }
+                                // });
                                 resolve(entry);
                             } else {
                                 message('error', String(err));

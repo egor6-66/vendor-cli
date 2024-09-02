@@ -50,13 +50,7 @@ class Builder {
                 };
             });
 
-            const res = await this.buildEntries(entries as Array<Config.IExposeEntry>);
-            message('success', `👌Compiled successful👌`);
-            // const watchModules = res.filter((i) => i.watch).map((i) => i.name);
-            //
-            // if (watchModules.length) {
-            //     message('success', `👀 Watching: ${watchModules}. 👀`);
-            // }
+            await this.buildEntries(entries as Array<Config.IExposeEntry>);
         } catch (e) {
             message('error', e);
         }

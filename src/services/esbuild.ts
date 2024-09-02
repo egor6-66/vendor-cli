@@ -35,17 +35,9 @@ class Esbuild {
 
                     if (entry.watch) {
                         context({ ...entry.config, plugins }).then((res) => res.watch());
+                        message('success', `👀 Watching: ${entry.name}. 👀`);
                     } else {
-                        const res = await build({
-                            ...entry.config,
-                            // plugins: plugins,
-                        });
-
-                        Object.entries(res.metafile.outputs).forEach(([key, val]) => {
-                            if (key.match(/.(js|css)/)) {
-                                message('info', `size ${entry.name}.${key.split('.').pop()} => ${getSize.bytesToSize(val.bytes)}`);
-                            }
-                        });
+                        await build({ ...entry.config, plugins });
                     }
 
                     return {
