@@ -5,7 +5,7 @@ const config: IConfig = {
         server: {
             enabled: true,
             port: 8888,
-            server: 'node',
+            serveStatic: 'node',
             playground: {
                 enabled: true,
                 root: 'src/index.tsx',

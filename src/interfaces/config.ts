@@ -17,7 +17,7 @@ export interface IPlayground {
 export interface IServer {
     enabled?: boolean;
     port?: number;
-    server?: 'node' | 'nginx';
+    serveStatic?: 'node' | 'nginx';
     playground?: IPlayground;
 }
 

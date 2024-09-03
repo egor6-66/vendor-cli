@@ -63,6 +63,7 @@ class Builder {
                         entryNames: entry.name,
                         entryPoints: [path.resolve(entry.target)],
                         bundle: true,
+                        sourcemap: true,
                         metafile: true,
                         format: 'esm',
                         plugins: [],

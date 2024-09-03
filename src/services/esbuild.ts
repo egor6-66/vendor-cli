@@ -43,6 +43,7 @@ class Esbuild {
                 sourcemap: true,
                 external: [],
                 packages: 'bundle',
+                format: 'esm',
                 ...playground.config,
                 plugins,
             };

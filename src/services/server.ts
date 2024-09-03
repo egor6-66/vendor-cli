@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
+import express from 'express';
 import fs from 'fs';
-import http, { ServerResponse } from 'http';
 import path from 'path';
 
 import { Config } from '../interfaces';
@@ -9,54 +9,56 @@ import { cmd, debounce, message, paths } from '../utils';
 class Server {
     config!: Config.IConfig;
 
+    app = express();
+
     emitter = new EventEmitter();
 
     headers = {
         'Content-Type': 'text/event-stream',
         Connection: 'keep-alive',
         'Cache-Control': 'no-cache',
+        'Access-Control-Allow-Origin': '*',
     };
 
     constructor(config: Config.IConfig) {
         if (config) {
             this.config = config;
-            this.bootstrap();
+            this.startServer();
         }
     }
 
-    async bootstrap() {
-        const server = this.config?.expose?.server?.server;
+    async startServer() {
+        const port = this.config?.expose?.server?.port || 8888;
+        const serveStatic = this.config?.expose?.server?.serveStatic;
+        this.watchHtml();
 
-        if (server === 'node') {
-            await this.nodeServer();
-        }
-
-        if (server === 'nginx') {
+        if (serveStatic === 'nginx') {
             await this.nginxServer();
         }
-    }
 
-    async playground(res: ServerResponse) {
-        if (this.config.expose.server.playground.enabled) {
-            res.writeHead(200, this.headers);
-            // res.write('playground not activated');
+        this.app.get('/playgroundRebuild', (req, res) => {
+            if (this.config.expose.server.playground.enabled) {
+                res.writeHead(200, this.headers);
 
-            return this.emitter.on('refresh_html', () => {
-                res.write('data: refresh\n\n');
+                return this.emitter.on('refresh_html', () => {
+                    res.write('data: refresh\n\n');
+                });
+            }
+        });
+
+        if (serveStatic === 'node') {
+            this.app.use('/playground', express.static(paths.playground));
+            this.app.get('/output/:path*', (req: any, res) => {
+                res.sendFile(path.join(paths.output, req.params.path, req.params[0]));
             });
-        } else {
-            res.writeHead(404, { 'Content-Type': 'text/html' });
-            res.write('playground not activated');
-
-            return res.end();
         }
+
+        this.app.listen(port, () => {
+            message('success', `🚀NODE server started on port ${port}🚀`);
+        });
     }
 
-    async nodeServer() {
-        const port = this.config?.expose?.server?.port || 8888;
-
-        type Endpoints = '/playgroundRebuild';
-
+    watchHtml() {
         if (this.config.expose.server.playground.enabled) {
             fs.watch(
                 path.join(paths.playground, 'index.html'),
@@ -65,24 +67,6 @@ class Server {
                 }, 200)
             );
         }
-
-        const server = http.createServer((req, res) => {
-            const url = req.url as Endpoints;
-
-            switch (url) {
-                case '/playgroundRebuild':
-                    return this.playground(res as ServerResponse);
-
-                default:
-                    res.writeHead(404, { 'Content-Type': 'text/html' });
-                    res.write('404 Not Found');
-                    res.end();
-            }
-        });
-
-        server.listen(port, () => {
-            message('success', `🚀NODE server started on port ${port}🚀`);
-        });
     }
 
     async nginxServer() {
