@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 
-import { constants, message, paths } from '../utils';
+import { Config } from '../interfaces';
+import { constants, message, paths, updateFile } from '../utils';
 
 class FilesCreator {
     private templatesPath = path.join(__dirname, '../', '../', 'templates');
@@ -22,6 +23,20 @@ class FilesCreator {
         fs.copyFileSync(path.join(__dirname, '../', 'interfaces', 'config.d.ts'), path.join(paths.utils, 'interfaces.ts'));
 
         message('success', '😎Initialization was successful😎');
+    }
+
+    playground(config: Config.IConfig) {
+        if (!config?.expose?.server) return;
+        const clientHtmlPath = path.resolve(config?.expose?.server.playground.htmlPath);
+        const clientHtml = fs.readFileSync(clientHtmlPath).toString();
+
+        const script = `
+<script>
+const events = new EventSource('http://localhost:${config?.expose?.server?.port || 8888}/playgroundRebuild')
+events.onmessage = () => { window.location.reload()}
+</script>\n`;
+
+        fs.writeFileSync(paths.templateHtml, updateFile.insertTextNextToWord(clientHtml, '</body>', script, 'before'));
     }
 }
 

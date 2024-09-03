@@ -35,8 +35,7 @@ class Server {
             if (this.config.expose.server.playground.enabled) {
                 res.writeHead(200, this.headers);
 
-                emitter.on('renderHTML', (data) => {
-                    console.log(data);
+                emitter.on('renderHTML', () => {
                     res.write('data: refresh\n\n');
                 });
             }

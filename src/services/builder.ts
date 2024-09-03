@@ -5,6 +5,7 @@ import { Config } from '../interfaces';
 import { emitter, message, paths } from '../utils';
 
 import Esbuild from './esbuild';
+import FilesCreator from './filesCreator';
 import Server from './server';
 import Tsc from './tsc';
 
@@ -45,6 +46,7 @@ class Builder {
             if (server?.enabled) {
                 if (server.playground.enabled) {
                     await this.esbuild.buildPlayground(server?.playground);
+                    FilesCreator.playground(config);
                 }
 
                 setTimeout(() => {

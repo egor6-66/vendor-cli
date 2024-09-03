@@ -4,17 +4,12 @@ import path from 'path';
 
 import { emitter, paths, updateFile } from '../../utils';
 
-interface IProps {
-    htmlPath: string;
-    emitter: emitter.IEmitter;
-}
-
-const html = (props: IProps) => ({
+const html = (emitter: emitter.IEmitter) => ({
     name: 'html',
     setup(build: PluginBuild) {
         build.onEnd((res) => {
             const playgroundHtmlPath = path.join(paths.playground, 'index.html');
-            const html = fs.readFileSync(path.resolve(props.htmlPath)).toString();
+            const html = fs.readFileSync(paths.templateHtml).toString();
 
             const newHtml = Object.keys(res.metafile.outputs).reduce((acc, key) => {
                 const name = key.split('/').pop();
@@ -32,7 +27,7 @@ const html = (props: IProps) => ({
             }, html);
 
             fs.writeFile(playgroundHtmlPath, newHtml, () => {
-                props.emitter.emit('renderHTML');
+                emitter.emit('renderHTML');
             });
         });
     },

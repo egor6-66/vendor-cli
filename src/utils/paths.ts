@@ -10,5 +10,5 @@ export const input = join(workingDir, 'input');
 export const output = join(workingDir, 'output');
 
 export const playground = join(workingDir, 'playground');
+export const templateHtml = join(playground, 'template.html');
 export const esbuild = join(__dirname, '..', 'esbuild');
-export const compiledConfig = join(esbuild, 'vendor.config.js');
