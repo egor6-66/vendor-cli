@@ -3,6 +3,7 @@
 const { Command } = require('commander');
 const program = new Command();
 import * as services from './services';
+import { emitter } from './utils';
 
 (() => {
     program
@@ -16,7 +17,7 @@ import * as services from './services';
         .command('build')
         .option('--server', 'Starts a server for distributing static content.')
         .action((args: any) => {
-            new services.Builder(args);
+            new services.Builder(args, emitter);
         })
         .description('Compiles all the packages you want to expose.');
 

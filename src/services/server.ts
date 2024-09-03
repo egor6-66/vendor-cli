@@ -1,17 +1,13 @@
-import { EventEmitter } from 'events';
 import express from 'express';
-import fs from 'fs';
 import path from 'path';
 
 import { Config } from '../interfaces';
-import { cmd, debounce, message, paths } from '../utils';
+import { cmd, emitter, message, paths } from '../utils';
 
 class Server {
     config!: Config.IConfig;
 
     app = express();
-
-    emitter = new EventEmitter();
 
     headers = {
         'Content-Type': 'text/event-stream',
@@ -20,17 +16,16 @@ class Server {
         'Access-Control-Allow-Origin': '*',
     };
 
-    constructor(config: Config.IConfig) {
+    constructor(config: Config.IConfig, emitter: emitter.IEmitter) {
         if (config) {
             this.config = config;
-            this.startServer();
+            this.startServer(emitter);
         }
     }
 
-    async startServer() {
+    async startServer(emitter: emitter.IEmitter) {
         const port = this.config?.expose?.server?.port || 8888;
         const serveStatic = this.config?.expose?.server?.serveStatic;
-        this.watchHtml();
 
         if (serveStatic === 'nginx') {
             await this.nginxServer();
@@ -40,7 +35,8 @@ class Server {
             if (this.config.expose.server.playground.enabled) {
                 res.writeHead(200, this.headers);
 
-                return this.emitter.on('refresh_html', () => {
+                emitter.on('renderHTML', (data) => {
+                    console.log(data);
                     res.write('data: refresh\n\n');
                 });
             }
@@ -56,17 +52,6 @@ class Server {
         this.app.listen(port, () => {
             message('success', `🚀NODE server started on port ${port}🚀`);
         });
-    }
-
-    watchHtml() {
-        if (this.config.expose.server.playground.enabled) {
-            fs.watch(
-                path.join(paths.playground, 'index.html'),
-                debounce(() => {
-                    this.emitter.emit('refresh_html');
-                }, 200)
-            );
-        }
     }
 
     async nginxServer() {

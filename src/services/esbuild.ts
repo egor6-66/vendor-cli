@@ -3,9 +3,15 @@ import path from 'path';
 
 import { buildTypesPlugin, htmlPlugin, rebuildNotifyPlugin } from '../esbuild/plugins';
 import { Config } from '../interfaces';
-import { message, paths } from '../utils';
+import { emitter, message, paths } from '../utils';
 
 class Esbuild {
+    emitter!: emitter.IEmitter;
+
+    constructor(emitter: emitter.IEmitter) {
+        this.emitter = emitter;
+    }
+
     async buildClientConfig() {
         const configPath = path.join(__dirname, '..', '..');
 
@@ -29,7 +35,7 @@ class Esbuild {
     async buildPlayground(playground: Config.IPlayground) {
         const esbuildConfig = playground.config || {};
         const plugins = esbuildConfig.plugins ? esbuildConfig.plugins : [];
-        plugins.push(htmlPlugin({ htmlPath: playground.htmlPath }));
+        plugins.push(htmlPlugin({ htmlPath: playground.htmlPath, emitter }));
 
         try {
             const config: BuildOptions = {
@@ -63,7 +69,7 @@ class Esbuild {
                         entry.config.plugins.push(buildTypesPlugin);
                     }
 
-                    entry.config.plugins.push(rebuildNotifyPlugin);
+                    entry.config.plugins.push(rebuildNotifyPlugin(emitter));
 
                     if (entry.watch) {
                         await context(entry.config).then((res) => res.watch());

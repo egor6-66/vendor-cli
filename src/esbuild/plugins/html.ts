@@ -2,10 +2,11 @@ import { PluginBuild } from 'esbuild';
 import fs from 'fs';
 import path from 'path';
 
-import { paths, updateFile } from '../../utils';
+import { emitter, paths, updateFile } from '../../utils';
 
 interface IProps {
     htmlPath: string;
+    emitter: emitter.IEmitter;
 }
 
 const html = (props: IProps) => ({
@@ -30,7 +31,9 @@ const html = (props: IProps) => ({
                 return acc;
             }, html);
 
-            fs.writeFileSync(playgroundHtmlPath, newHtml);
+            fs.writeFile(playgroundHtmlPath, newHtml, () => {
+                props.emitter.emit('renderHTML');
+            });
         });
     },
 });

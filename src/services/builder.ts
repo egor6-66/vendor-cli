@@ -1,7 +1,8 @@
+import { EventEmitter } from 'events';
 import path from 'path';
 
 import { Config } from '../interfaces';
-import { message, paths } from '../utils';
+import { emitter, message, paths } from '../utils';
 
 import Esbuild from './esbuild';
 import Server from './server';
@@ -16,12 +17,16 @@ class Builder {
 
     config!: Config.IConfig;
 
-    esbuild = new Esbuild();
+    emitter!: emitter.IEmitter;
+
+    esbuild!: Esbuild;
 
     tsc = new Tsc();
 
-    constructor(args: IArgs) {
+    constructor(args: IArgs, emitter: emitter.IEmitter) {
         this.args = args;
+        this.emitter = emitter;
+        this.esbuild = new Esbuild(emitter);
         message('success', '⏳ Compiling started...⏳');
         this.bootstrap();
     }
@@ -43,7 +48,7 @@ class Builder {
                 }
 
                 setTimeout(() => {
-                    new Server(this.config);
+                    new Server(this.config, this.emitter);
                 }, 2000);
             }
         });
