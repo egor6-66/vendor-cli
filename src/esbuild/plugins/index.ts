@@ -1,4 +1,4 @@
-import buildTypes from './buildTypes';
-import rebuildNotify from './rebuildNotify';
+import buildTypesPlugin from './buildTypes';
+import rebuildNotifyPlugin from './rebuildNotify';
 
-export default [rebuildNotify, buildTypes];
+export { buildTypesPlugin, rebuildNotifyPlugin };

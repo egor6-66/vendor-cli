@@ -29,17 +29,19 @@ class Builder {
     bootstrap() {
         this.esbuild.buildClientConfig().then(async (config) => {
             this.config = config;
-            const playground = this.config?.expose?.server?.playground;
+            const server = config?.expose?.server;
+            const entries = config?.expose?.entries;
 
-            if (config?.expose?.entries.length) {
+            if (entries.length) {
+                await this.tsc.createTsconfig(entries);
                 await this.updateEntries(config);
             }
 
-            if (playground) {
-                await this.esbuild.buildPlayground(playground);
-            }
+            if (server?.enabled) {
+                if (!server.playground.enabled) {
+                    await this.esbuild.buildPlayground(server.playground);
+                }
 
-            if (!this.config?.expose?.server?.disabled) {
                 setTimeout(() => {
                     new Server(this.config);
                 }, 2000);
@@ -50,18 +52,21 @@ class Builder {
     async updateEntries(config: Config.IConfig) {
         try {
             const entries = config.expose.entries.map((entry) => {
-                const esbuildConfig = config.expose.config || entry.config;
+                const expConfig = config.expose.config || {};
+                const entryConfig = entry.config || {};
 
                 return {
                     ...entry,
                     config: {
-                        ...esbuildConfig,
                         outdir: path.join(paths.output, entry.name),
                         entryNames: entry.name,
                         entryPoints: [path.resolve(entry.target)],
                         bundle: true,
                         metafile: true,
                         format: 'esm',
+                        plugins: [],
+                        ...expConfig,
+                        ...entryConfig,
                     },
                 };
             });
@@ -74,8 +79,6 @@ class Builder {
 
     async buildEntries(entries: Array<Config.IExposeEntry>) {
         const res = await this.esbuild.buildEntries(entries);
-
-        return await this.tsc.createTsconfig(res);
     }
 }
 

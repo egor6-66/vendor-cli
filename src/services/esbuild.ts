@@ -1,7 +1,7 @@
 import { build, BuildOptions, context } from 'esbuild';
 import path from 'path';
 
-import vendorPlugins from '../esbuild/plugins';
+import { buildTypesPlugin, rebuildNotifyPlugin } from '../esbuild/plugins';
 import { Config } from '../interfaces';
 import { message, paths } from '../utils';
 
@@ -33,7 +33,7 @@ class Esbuild {
                 bundle: true,
                 minify: true,
                 sourcemap: true,
-                entryNames: 'index',
+                entryNames: 'playground',
                 entryPoints: [path.resolve(playground.root)],
                 outdir: paths.playground,
                 external: [],
@@ -52,14 +52,17 @@ class Esbuild {
         try {
             return await Promise.all(
                 entries.map(async (entry) => {
-                    const userPlugins = entry.config?.plugins;
-                    const plugins = userPlugins?.length ? [...userPlugins, ...vendorPlugins] : vendorPlugins;
+                    if (entry.checkTypes) {
+                        entry.config.plugins.push(buildTypesPlugin);
+                    }
+
+                    entry.config.plugins.push(rebuildNotifyPlugin);
 
                     if (entry.watch) {
-                        context({ ...entry.config, plugins }).then((res) => res.watch());
+                        await context(entry.config).then((res) => res.watch());
                         message('success', `👀 Watching: ${entry.name}. 👀`);
                     } else {
-                        await build({ ...entry.config, plugins });
+                        await build(entry.config);
                     }
 
                     return {

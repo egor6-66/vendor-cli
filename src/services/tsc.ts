@@ -1,14 +1,15 @@
 import fs from 'fs';
 import path from 'path';
 
+import { Config } from '../interfaces';
 import { message, paths } from '../utils';
 
 class Tsc {
-    async createTsconfig(entries: Array<{ name: string; path: string; watch: boolean }>) {
+    async createTsconfig(entries: Array<Config.IExposeEntry>) {
         try {
             return await Promise.all(
-                entries.map((entry) => {
-                    return new Promise((resolve, reject) => {
+                entries.map(async (entry) => {
+                    try {
                         const tsconfig = {
                             compilerOptions: {
                                 outDir: `./types`,
@@ -21,20 +22,20 @@ class Tsc {
                                 moduleResolution: 'bundler',
                                 module: 'esnext',
                             },
-                            include: [`../../../${entry.path}`],
+                            include: [`../../../${entry.target}`],
                         };
 
-                        const tsconfigPath = path.join(paths.output, entry.name, 'tsconfig.json');
+                        const entryFolderPath = path.join(paths.output, entry.name);
+                        const tsconfigPath = path.join(entryFolderPath, 'tsconfig.json');
 
-                        fs.writeFile(tsconfigPath, JSON.stringify(tsconfig, null, 2), (err) => {
-                            if (!err) {
-                                resolve(entry);
-                            } else {
-                                message('error', String(err));
-                                reject();
-                            }
-                        });
-                    });
+                        if (!fs.existsSync(entryFolderPath)) {
+                            await fs.mkdir(entryFolderPath, () => {
+                                fs.writeFileSync(tsconfigPath, JSON.stringify(tsconfig, null, 2));
+                            });
+                        }
+                    } catch (e) {
+                        message('error', e);
+                    }
                 })
             );
         } catch (e) {

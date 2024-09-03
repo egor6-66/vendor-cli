@@ -3,5 +3,6 @@ import * as constants from './constants';
 import * as getSize from './getSize';
 import message from './message';
 import * as paths from './paths';
+import * as zip from './zip';
 
-export { cmd, constants, getSize, message, paths };
+export { cmd, constants, getSize, message, paths, zip };

@@ -1,5 +1,5 @@
 export interface IEsbuildConfig {
-    platform: 'browser' | 'node';
+    platform?: 'browser' | 'node';
     packages?: 'external' | 'bundle';
     external?: Array<string>;
     minify?: boolean;
@@ -8,13 +8,13 @@ export interface IEsbuildConfig {
 }
 
 export interface IPlayground {
-    disabled?: boolean;
+    enabled?: boolean;
     root: string;
-    config: IEsbuildConfig;
+    config?: IEsbuildConfig;
 }
 
 export interface IServer {
-    disabled?: boolean;
+    enabled?: boolean;
     port?: number;
     server?: 'node' | 'nginx';
     playground?: IPlayground;
@@ -25,7 +25,8 @@ export interface IExposeEntry {
     name: string;
     target: string;
     watch?: boolean;
-    config: IEsbuildConfig;
+    checkTypes?: boolean;
+    config?: IEsbuildConfig;
 }
 
 export interface IExpose {

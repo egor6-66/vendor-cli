@@ -10,7 +10,8 @@ const rebuildNotify = {
             message('info', `${entryName} compiling...`);
         });
         build.onEnd((result) => {
-            const size = getSize.bytesToSize(Object.values(result.metafile.outputs)[0].bytes);
+            const bytes = Object.values(result.metafile.outputs).reduce((acc, i) => (acc += i.bytes), 0);
+            const size = getSize.bytesToSize(bytes);
             message('success', `${entryName} compiled successfully. size => ${size}`);
         });
     },
