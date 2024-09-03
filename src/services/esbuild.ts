@@ -26,7 +26,7 @@ class Esbuild {
         }
     }
 
-    async buildPlayground(playground?: Config.IPlayground) {
+    async buildPlayground(playground: Config.IPlayground) {
         const esbuildConfig = playground.config || {};
         const plugins = esbuildConfig.plugins ? esbuildConfig.plugins : [];
         plugins.push(htmlPlugin({ htmlPath: playground.htmlPath }));

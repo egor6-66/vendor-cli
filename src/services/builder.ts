@@ -39,7 +39,7 @@ class Builder {
 
             if (server?.enabled) {
                 if (server.playground.enabled) {
-                    await this.esbuild.buildPlayground(server.playground);
+                    await this.esbuild.buildPlayground(server?.playground);
                 }
 
                 setTimeout(() => {
@@ -72,14 +72,10 @@ class Builder {
                 };
             });
 
-            await this.buildEntries(entries as Array<Config.IExposeEntry>);
+            await this.esbuild.buildEntries(entries as Array<Config.IExposeEntry>);
         } catch (e) {
             message('error', e);
         }
-    }
-
-    async buildEntries(entries: Array<Config.IExposeEntry>) {
-        const res = await this.esbuild.buildEntries(entries);
     }
 }
 

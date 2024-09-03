@@ -13,7 +13,7 @@ const html = (props: IProps) => ({
     setup(build: PluginBuild) {
         build.onEnd((res) => {
             const playgroundHtmlPath = path.join(paths.playground, 'index.html');
-            const html = fs.readFileSync(props.htmlPath).toString();
+            const html = fs.readFileSync(path.resolve(props.htmlPath)).toString();
 
             const newHtml = Object.keys(res.metafile.outputs).reduce((acc, key) => {
                 const name = key.split('/').pop();
