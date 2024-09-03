@@ -10,6 +10,7 @@ export interface IEsbuildConfig {
 export interface IPlayground {
     enabled?: boolean;
     root: string;
+    htmlPath: string;
     config?: IEsbuildConfig;
 }
 

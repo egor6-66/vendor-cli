@@ -38,7 +38,7 @@ class Builder {
             }
 
             if (server?.enabled) {
-                if (!server.playground.enabled) {
+                if (server.playground.enabled) {
                     await this.esbuild.buildPlayground(server.playground);
                 }
 
@@ -56,6 +56,7 @@ class Builder {
                 const entryConfig = entry.config || {};
 
                 return {
+                    checkTypes: true,
                     ...entry,
                     config: {
                         outdir: path.join(paths.output, entry.name),

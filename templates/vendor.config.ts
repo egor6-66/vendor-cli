@@ -9,6 +9,7 @@ const config: IConfig = {
             playground: {
                 enabled: true,
                 root: 'src/index.tsx',
+                htmlPath: 'public/index.html',
             },
         },
         entries: [

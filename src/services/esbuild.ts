@@ -1,7 +1,7 @@
 import { build, BuildOptions, context } from 'esbuild';
 import path from 'path';
 
-import { buildTypesPlugin, rebuildNotifyPlugin } from '../esbuild/plugins';
+import { buildTypesPlugin, htmlPlugin, rebuildNotifyPlugin } from '../esbuild/plugins';
 import { Config } from '../interfaces';
 import { message, paths } from '../utils';
 
@@ -27,18 +27,24 @@ class Esbuild {
     }
 
     async buildPlayground(playground?: Config.IPlayground) {
+        const esbuildConfig = playground.config || {};
+        const plugins = esbuildConfig.plugins ? esbuildConfig.plugins : [];
+        plugins.push(htmlPlugin({ htmlPath: playground.htmlPath }));
+
         try {
             const config: BuildOptions = {
+                outdir: paths.playground,
+                entryNames: 'playground.[hash]',
+                entryPoints: [path.resolve(playground.root)],
                 platform: 'browser',
                 bundle: true,
                 minify: true,
+                metafile: true,
                 sourcemap: true,
-                entryNames: 'playground',
-                entryPoints: [path.resolve(playground.root)],
-                outdir: paths.playground,
                 external: [],
                 packages: 'bundle',
                 ...playground.config,
+                plugins,
             };
 
             context(config).then((res) => res.watch());
