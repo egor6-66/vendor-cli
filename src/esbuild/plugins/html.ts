@@ -11,7 +11,7 @@ const html = (emitter: emitter.IEmitter) => ({
             const playgroundHtmlPath = path.join(paths.playground, 'index.html');
             const html = fs.readFileSync(paths.templateHtml).toString();
 
-            const newHtml = Object.keys(res.metafile.outputs).reduce((acc, key) => {
+            const newHtml = Object.keys(res?.metafile?.outputs).reduce((acc, key) => {
                 const name = key.split('/').pop();
                 const ext = name.split('.').pop();
 

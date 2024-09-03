@@ -2,7 +2,7 @@ import { PluginBuild } from 'esbuild';
 import fs from 'fs';
 import path from 'path';
 
-import { cmd, getSize, message, paths, zip } from '../../utils';
+import { cmd, getSize, message, paths } from '../../utils';
 
 const buildTypes = {
     name: 'build-types',
@@ -17,15 +17,11 @@ const buildTypes = {
             const typesDir = path.join(entryDir, 'types');
 
             if (fs.existsSync(tsConfig)) {
-                cmd.exec(`tsc -p ${tsConfig}`)
-                    .then(async () => {
-                        const typeSize = await getSize.dir(typesDir);
-                        // zip.compress(typesDir, path.join(entryDir, 'types.zip'));
-                        message('success', `${entryName} types generation successfully. size => ${typeSize}`);
-                    })
-                    .catch((error) => {
-                        message('error', error);
-                    });
+                console.log(tsConfig);
+                cmd.exec(`tsc -p ${tsConfig}`).then(async () => {
+                    const typeSize = await getSize.dir(typesDir);
+                    message('success', `${entryName} types generation successfully. size => ${typeSize}`);
+                });
             }
         });
     },
