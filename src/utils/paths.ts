@@ -9,5 +9,6 @@ export const docker = join(utils, 'docker-nginx');
 export const input = join(workingDir, 'input');
 export const output = join(workingDir, 'output');
 
+export const playground = join(workingDir, 'playground');
 export const esbuild = join(__dirname, '..', 'esbuild');
 export const compiledConfig = join(esbuild, 'vendor.config.js');

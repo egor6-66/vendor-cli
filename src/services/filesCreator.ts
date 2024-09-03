@@ -21,7 +21,7 @@ class FilesCreator {
         fs.cpSync(path.join(this.templatesPath, constants.workingDirName), paths.workingDir, { recursive: true, force: true });
         fs.copyFileSync(path.join(__dirname, '../', 'interfaces', 'config.d.ts'), path.join(paths.utils, 'interfaces.ts'));
 
-        message('success', '😎 Initialization was successful 😎');
+        message('success', '😎Initialization was successful😎');
     }
 }
 

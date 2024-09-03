@@ -1,9 +1,9 @@
-import { build, context } from 'esbuild';
+import { build, BuildOptions, context } from 'esbuild';
 import path from 'path';
 
 import vendorPlugins from '../esbuild/plugins';
 import { Config } from '../interfaces';
-import { message } from '../utils';
+import { message, paths } from '../utils';
 
 class Esbuild {
     async buildClientConfig() {
@@ -21,6 +21,28 @@ class Esbuild {
             }).then(() => {
                 return require(path.join(configPath, 'config.js')).default as Config.IConfig;
             });
+        } catch (e) {
+            message('error', e);
+        }
+    }
+
+    async buildPlayground(playground?: Config.IPlayground) {
+        try {
+            const config: BuildOptions = {
+                platform: 'browser',
+                bundle: true,
+                minify: true,
+                sourcemap: true,
+                entryNames: 'index',
+                entryPoints: [path.resolve(playground.root)],
+                outdir: paths.playground,
+                external: [],
+                packages: 'bundle',
+                ...playground.config,
+            };
+
+            context(config).then((res) => res.watch());
+            message('success', `🎮 Playground started 🎮`);
         } catch (e) {
             message('error', e);
         }

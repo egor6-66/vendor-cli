@@ -4,6 +4,7 @@ import { Config } from '../interfaces';
 import { message, paths } from '../utils';
 
 import Esbuild from './esbuild';
+import Server from './server';
 import Tsc from './tsc';
 
 interface IArgs {
@@ -13,6 +14,8 @@ interface IArgs {
 class Builder {
     args!: IArgs;
 
+    config!: Config.IConfig;
+
     esbuild = new Esbuild();
 
     tsc = new Tsc();
@@ -20,13 +23,26 @@ class Builder {
     constructor(args: IArgs) {
         this.args = args;
         message('success', '⏳ Compiling started...⏳');
-        this.buildClientConfig();
+        this.bootstrap();
     }
 
-    buildClientConfig() {
-        this.esbuild.buildClientConfig().then((config) => {
+    bootstrap() {
+        this.esbuild.buildClientConfig().then(async (config) => {
+            this.config = config;
+            const playground = this.config?.expose?.server?.playground;
+
             if (config?.expose?.entries.length) {
-                this.updateEntries(config);
+                await this.updateEntries(config);
+            }
+
+            if (playground) {
+                await this.esbuild.buildPlayground(playground);
+            }
+
+            if (!this.config?.expose?.server?.disabled) {
+                setTimeout(() => {
+                    new Server(this.config);
+                }, 2000);
             }
         });
     }

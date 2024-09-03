@@ -7,15 +7,29 @@ export interface IEsbuildConfig {
     plugins?: Array<any>;
 }
 
+export interface IPlayground {
+    disabled?: boolean;
+    root: string;
+    config: IEsbuildConfig;
+}
+
+export interface IServer {
+    disabled?: boolean;
+    port?: number;
+    server?: 'node' | 'nginx';
+    playground?: IPlayground;
+}
+
 export interface IExposeEntry {
     version: number;
     name: string;
     target: string;
     watch?: boolean;
-    config?: IEsbuildConfig;
+    config: IEsbuildConfig;
 }
 
 export interface IExpose {
+    server?: IServer;
     config?: IEsbuildConfig;
     entries: Array<IExposeEntry>;
 }
@@ -26,15 +40,7 @@ export interface IRemote {
     entries: Array<{ host?: string; version: number; name: string }>;
 }
 
-export interface IPlayground {
-    active: boolean;
-    root: string;
-}
-
 export interface IConfig {
-    platform: 'browser' | 'node';
-    zipPass?: string;
     expose?: IExpose;
     remote?: IRemote;
-    playground?: IPlayground;
 }
