@@ -32,11 +32,12 @@ class Esbuild {
 
             const esbuildConfig = this.updateConfig(
                 config.expose.server.playground.esbuildConfig,
-                config.expose.esbuildConfig,
+                { ...config.expose.esbuildConfig, packages: 'bundle' },
                 [htmlPlugin(emitter)],
                 inputOutput
             );
 
+            console.log('buildPlayground', esbuildConfig);
             context(esbuildConfig).then((res) => res.watch());
             message('success', `🎮 Playground started 🎮`);
         } catch (e) {
@@ -73,6 +74,8 @@ class Esbuild {
                     if (updEntry.checkTypes) {
                         updEntry.config.plugins.push(buildTypesPlugin(location));
                     }
+
+                    console.log('buildEntries', esbuildConfig);
 
                     if (updEntry.watch) {
                         await context(updEntry.config).then((res) => res.watch());

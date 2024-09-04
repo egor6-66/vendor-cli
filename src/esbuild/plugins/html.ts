@@ -7,6 +7,17 @@ import { emitter, paths, updateFile } from '../../utils';
 const html = (emitter: emitter.IEmitter) => ({
     name: 'html',
     setup(build: PluginBuild) {
+        build.onStart(() => {
+            fs.readdir(build.initialOptions.outdir, (err, files) => {
+                files.forEach((file) => {
+                    const ext = file.split('.').pop();
+
+                    if (ext !== 'html') {
+                        fs.unlinkSync(path.join(build.initialOptions.outdir, file));
+                    }
+                });
+            });
+        });
         build.onEnd((res) => {
             const playgroundHtmlPath = path.join(paths.playground, 'index.html');
             const html = fs.readFileSync(paths.templateHtml).toString();
