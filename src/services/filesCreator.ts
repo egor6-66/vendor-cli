@@ -7,8 +7,6 @@ import { constants, message, paths, updateFile } from '../utils';
 class FilesCreator {
     private templatesPath = path.join(__dirname, '../', '../', 'templates');
 
-    private esbuildPath = path.join(__dirname, '../', 'esbuild', 'watchers');
-
     configAndWorkingDirs() {
         if (fs.existsSync(paths.config)) {
             message('error', 'Config file already exists');

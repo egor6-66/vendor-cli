@@ -1,8 +1,5 @@
-import { EventEmitter } from 'events';
-import path from 'path';
-
 import { Config } from '../interfaces';
-import { emitter, message, paths } from '../utils';
+import { emitter, message } from '../utils';
 
 import Esbuild from './esbuild';
 import FilesCreator from './filesCreator';
@@ -39,14 +36,14 @@ class Builder {
             const entries = config?.expose?.entries;
 
             if (entries.length) {
-                await this.tsc.createTsconfig(entries);
-                await this.updateEntries(config);
+                await this.tsc.createTsconfig(config);
+                await this.esbuild.buildEntries(config);
             }
 
             if (server?.enabled) {
                 if (server.playground.enabled) {
-                    await this.esbuild.buildPlayground(server?.playground);
                     FilesCreator.playground(config);
+                    await this.esbuild.buildPlayground(config);
                 }
 
                 setTimeout(() => {
@@ -54,36 +51,6 @@ class Builder {
                 }, 2000);
             }
         });
-    }
-
-    async updateEntries(config: Config.IConfig) {
-        try {
-            const entries = config.expose.entries.map((entry) => {
-                const expConfig = config.expose.config || {};
-                const entryConfig = entry.config || {};
-
-                return {
-                    checkTypes: true,
-                    ...entry,
-                    config: {
-                        outdir: path.join(paths.output, entry.name),
-                        entryNames: entry.name,
-                        entryPoints: [path.resolve(entry.target)],
-                        bundle: true,
-                        sourcemap: true,
-                        metafile: true,
-                        format: 'esm',
-                        plugins: [],
-                        ...expConfig,
-                        ...entryConfig,
-                    },
-                };
-            });
-
-            await this.esbuild.buildEntries(entries as Array<Config.IExposeEntry>);
-        } catch (e) {
-            message('error', e);
-        }
     }
 }
 

@@ -31,6 +31,7 @@ export interface IExposeEntry {
 }
 
 export interface IExpose {
+    declarationTypes?: string;
     server?: IServer;
     config?: IEsbuildConfig;
     entries: Array<IExposeEntry>;

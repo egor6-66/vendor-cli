@@ -1,7 +1,8 @@
 import { IConfig } from '.vendor/_utils/interfaces';
 
-const config: IConfig = {
+const vendorConfig: IConfig = {
     expose: {
+        declarationTypes: 'global.d.ts',
         server: {
             enabled: true,
             port: 8888,
@@ -24,4 +25,4 @@ const config: IConfig = {
     },
 };
 
-export default config;
+export default vendorConfig;

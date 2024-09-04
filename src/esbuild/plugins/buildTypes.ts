@@ -17,7 +17,6 @@ const buildTypes = {
             const typesDir = path.join(entryDir, 'types');
 
             if (fs.existsSync(tsConfig)) {
-                console.log(tsConfig);
                 cmd.exec(`tsc -p ${tsConfig}`).then(async () => {
                     const typeSize = await getSize.dir(typesDir);
                     message('success', `${entryName} types generation successfully. size => ${typeSize}`);

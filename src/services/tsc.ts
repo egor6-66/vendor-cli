@@ -5,14 +5,14 @@ import { Config } from '../interfaces';
 import { message, paths } from '../utils';
 
 class Tsc {
-    async createTsconfig(entries: Array<Config.IExposeEntry>) {
+    async createTsconfig(config: Config.IConfig) {
         try {
             return await Promise.all(
-                entries.map(async (entry) => {
+                config.expose.entries.map(async (entry) => {
                     try {
                         const tsconfig = {
                             compilerOptions: {
-                                outDir: `./types`,
+                                outDir: './types',
                                 declaration: true,
                                 emitDeclarationOnly: true,
                                 esModuleInterop: true,
@@ -25,14 +25,18 @@ class Tsc {
                             include: [`../../../${entry.target}`],
                         };
 
+                        if (config.expose.declarationTypes) {
+                            tsconfig.include.push(`../../../${config.expose.declarationTypes}`);
+                        }
+
                         const entryFolderPath = path.join(paths.output, entry.name);
                         const tsconfigPath = path.join(entryFolderPath, 'tsconfig.json');
 
                         if (!fs.existsSync(entryFolderPath)) {
-                            await fs.mkdir(entryFolderPath, () => {
-                                fs.writeFileSync(tsconfigPath, JSON.stringify(tsconfig, null, 2));
-                            });
+                            await fs.mkdirSync(entryFolderPath);
                         }
+
+                        fs.writeFileSync(tsconfigPath, JSON.stringify(tsconfig, null, 2));
                     } catch (e) {
                         message('error', e);
                     }
