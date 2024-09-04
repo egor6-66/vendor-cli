@@ -1,4 +1,4 @@
-import { Config } from '../interfaces';
+import { IConfig } from '../interfaces';
 import { emitter, message } from '../utils';
 
 import Esbuild from './esbuild';
@@ -6,14 +6,8 @@ import FilesCreator from './filesCreator';
 import Server from './server';
 import Tsc from './tsc';
 
-interface IArgs {
-    server: boolean;
-}
-
 class Builder {
-    args!: IArgs;
-
-    config!: Config.IConfig;
+    config!: IConfig;
 
     emitter!: emitter.IEmitter;
 
@@ -21,36 +15,37 @@ class Builder {
 
     tsc = new Tsc();
 
-    constructor(args: IArgs, emitter: emitter.IEmitter) {
-        this.args = args;
+    constructor(config: IConfig, emitter: emitter.IEmitter) {
+        this.config = config;
         this.emitter = emitter;
         this.esbuild = new Esbuild(emitter);
         message('success', '⏳ Compiling started...⏳');
         this.bootstrap();
     }
 
-    bootstrap() {
-        this.esbuild.buildClientConfig().then(async (config) => {
-            this.config = config;
-            const server = config?.expose?.server;
-            const entries = config?.expose?.entries;
+    async bootstrap() {
+        const server = this.config?.expose?.server;
+        const entries = this.config?.expose?.entries;
 
-            if (entries.length) {
-                await this.tsc.createTsconfig(config);
-                await this.esbuild.buildEntries(config);
+        if (entries.length) {
+            try {
+                await this.tsc.createTsconfig(this.config);
+                await this.esbuild.buildEntries(this.config);
+            } catch (e) {
+                message('error', e);
+            }
+        }
+
+        if (server?.enabled) {
+            if (server.playground.enabled) {
+                FilesCreator.playground(this.config);
+                await this.esbuild.buildPlayground(this.config);
             }
 
-            if (server?.enabled) {
-                if (server.playground.enabled) {
-                    FilesCreator.playground(config);
-                    await this.esbuild.buildPlayground(config);
-                }
-
-                setTimeout(() => {
-                    new Server(this.config, this.emitter);
-                }, 2000);
-            }
-        });
+            setTimeout(() => {
+                new Server(this.config, this.emitter);
+            }, 2000);
+        }
     }
 }
 

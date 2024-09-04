@@ -1,11 +1,11 @@
 import express from 'express';
 import path from 'path';
 
-import { Config } from '../interfaces';
+import { IConfig } from '../interfaces';
 import { cmd, emitter, message, paths } from '../utils';
 
 class Server {
-    config!: Config.IConfig;
+    config!: IConfig;
 
     app = express();
 
@@ -16,7 +16,7 @@ class Server {
         'Access-Control-Allow-Origin': '*',
     };
 
-    constructor(config: Config.IConfig, emitter: emitter.IEmitter) {
+    constructor(config: IConfig, emitter: emitter.IEmitter) {
         if (config) {
             this.config = config;
             this.startServer(emitter);

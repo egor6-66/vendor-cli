@@ -2,12 +2,11 @@ import { PluginBuild } from 'esbuild';
 
 import { emitter, getSize, message } from '../../utils';
 
-const rebuildNotify = (emitter: emitter.IEmitter) => ({
+const rebuildNotify = (emitter: emitter.IEmitter, location: string) => ({
     name: 'rebuild-notify',
     setup(build: PluginBuild) {
-        const entryName = build.initialOptions.entryNames;
         build.onStart(() => {
-            message('info', `${entryName} compiling...`);
+            message('info', `${location} compiling...`);
         });
         build.onEnd((result) => {
             const bytes = Object.entries(result?.metafile?.outputs).reduce((acc, [key, val]) => {
@@ -22,8 +21,8 @@ const rebuildNotify = (emitter: emitter.IEmitter) => ({
             }, 0);
 
             const size = getSize.bytesToSize(bytes);
-            message('success', `${entryName} compiled successfully. size => ${size}`);
-            emitter.emit('updateEntry', entryName);
+            message('success', `${location} compiled successfully. size => ${size}`);
+            emitter.emit('updateEntry', location);
         });
     },
 });

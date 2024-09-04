@@ -1,25 +1,55 @@
 #! /usr/bin/env node
 
+import path from 'path';
+
 const { Command } = require('commander');
 const program = new Command();
+
+import { build } from 'esbuild';
+
 import * as services from './services';
-import { emitter } from './utils';
+import { emitter, message } from './utils';
 
-(() => {
-    program
-        .command('init')
-        .action(() => {
-            services.FilesCreator.configAndWorkingDirs();
-        })
-        .description('Creating config and working directories.');
+class Root {
+    constructor() {
+        this.commands();
+        program.parse(process.argv);
+    }
 
-    program
-        .command('build')
-        .option('--server', 'Starts a server for distributing static content.')
-        .action((args: any) => {
-            new services.Builder(args, emitter);
-        })
-        .description('Compiles all the packages you want to expose.');
+    commands() {
+        program
+            .command('init')
+            .action(() => {
+                services.FilesCreator.configAndWorkingDirs();
+            })
+            .description('Creating config and working directories.');
 
-    program.parse(process.argv);
-})();
+        program
+            .command('build')
+            .action(async () => {
+                const config = await this.getConfig();
+                new services.Builder(config, emitter);
+            })
+            .description('Compiles all the packages you want to expose.');
+    }
+
+    async getConfig() {
+        try {
+            await build({
+                outdir: path.join(__dirname),
+                entryNames: 'config',
+                entryPoints: [path.resolve('vendor.config.ts')],
+                bundle: true,
+                platform: 'node',
+                minify: true,
+                sourcemap: false,
+            });
+
+            return require(path.join(__dirname, 'config.js')).default;
+        } catch (e) {
+            message('error', e);
+        }
+    }
+}
+
+export default new Root();

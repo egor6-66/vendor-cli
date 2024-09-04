@@ -1,3 +1,9 @@
-import * as Config from './config';
+import IExpose from './expose';
+import IRemote from './remote';
 
-export type { Config };
+interface IConfig {
+    expose?: IExpose;
+    remote?: IRemote;
+}
+
+export type { IConfig };

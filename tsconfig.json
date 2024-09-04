@@ -2,16 +2,16 @@
   "compilerOptions": {
     "outDir": "dist",
     "target": "ESNext",
-    "module": "CommonJS",
+    "module": "NodeNext",
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "declaration": true,
     "declarationMap": false,
     "allowJs": true,
     "sourceMap": false,
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
-    "skipLibCheck": false,
+    "skipLibCheck": false
   },
   "ts-node": {
     "compilerOptions": {

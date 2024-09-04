@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import { Config } from '../interfaces';
+import { IConfig } from '../interfaces';
 import { constants, message, paths, updateFile } from '../utils';
 
 class FilesCreator {
@@ -18,12 +18,12 @@ class FilesCreator {
 
         fs.copyFileSync(path.join(this.templatesPath, constants.configName), paths.config);
         fs.cpSync(path.join(this.templatesPath, constants.workingDirName), paths.workingDir, { recursive: true, force: true });
-        fs.copyFileSync(path.join(__dirname, '../', 'interfaces', 'config.d.ts'), path.join(paths.utils, 'interfaces.ts'));
+        fs.cpSync(path.join(__dirname, '../', 'interfaces'), path.join(paths.utils, 'interfaces'), { recursive: true, force: true });
 
         message('success', '😎Initialization was successful😎');
     }
 
-    playground(config: Config.IConfig) {
+    playground(config: IConfig) {
         if (!config?.expose?.server) return;
         const clientHtmlPath = path.resolve(config?.expose?.server.playground.htmlPath);
         const clientHtml = fs.readFileSync(clientHtmlPath).toString();

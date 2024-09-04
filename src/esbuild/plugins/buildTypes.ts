@@ -2,28 +2,27 @@ import { PluginBuild } from 'esbuild';
 import fs from 'fs';
 import path from 'path';
 
-import { cmd, getSize, message, paths } from '../../utils';
+import { cmd, getSize, message } from '../../utils';
 
-const buildTypes = {
+const buildTypes = (location: string) => ({
     name: 'build-types',
     setup(build: PluginBuild) {
-        const entryName = build.initialOptions.entryNames;
+        const outdir = build.initialOptions.outdir;
         build.onStart(() => {
-            message('info', `${entryName} types generation...`);
+            message('info', `${location} types generation...`);
         });
         build.onEnd(() => {
-            const entryDir = path.join(paths.output, entryName);
-            const tsConfig = path.join(entryDir, 'tsconfig.json');
-            const typesDir = path.join(entryDir, 'types');
+            const tsConfig = path.join(outdir, 'tsconfig.json');
+            const typesDir = path.join(outdir, 'types');
 
             if (fs.existsSync(tsConfig)) {
                 cmd.exec(`tsc -p ${tsConfig}`).then(async () => {
                     const typeSize = await getSize.dir(typesDir);
-                    message('success', `${entryName} types generation successfully. size => ${typeSize}`);
+                    message('success', `${location} types generation successfully. size => ${typeSize}`);
                 });
             }
         });
     },
-};
+});
 
 export default buildTypes;

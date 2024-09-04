@@ -1,14 +1,22 @@
 import fs from 'fs';
 import path from 'path';
 
-import { Config } from '../interfaces';
+import { IConfig } from '../interfaces';
 import { message, paths } from '../utils';
 
 class Tsc {
-    async createTsconfig(config: Config.IConfig) {
+    async createTsconfig(config: IConfig) {
         try {
             return await Promise.all(
                 config.expose.entries.map(async (entry) => {
+                    const root = '../../../../';
+                    const entryFolderPath = path.join(paths.output, entry.name, `v_${entry.version}`);
+                    const tsconfigPath = path.join(entryFolderPath, 'tsconfig.json');
+
+                    if (!fs.existsSync(entryFolderPath)) {
+                        fs.mkdirSync(entryFolderPath, { recursive: true });
+                    }
+
                     try {
                         const tsconfig = {
                             compilerOptions: {
@@ -22,18 +30,11 @@ class Tsc {
                                 moduleResolution: 'bundler',
                                 module: 'esnext',
                             },
-                            include: [`../../../${entry.target}`],
+                            include: [`${root}${entry.target}`],
                         };
 
-                        if (config.expose.declarationTypes) {
-                            tsconfig.include.push(`../../../${config.expose.declarationTypes}`);
-                        }
-
-                        const entryFolderPath = path.join(paths.output, entry.name);
-                        const tsconfigPath = path.join(entryFolderPath, 'tsconfig.json');
-
-                        if (!fs.existsSync(entryFolderPath)) {
-                            await fs.mkdirSync(entryFolderPath);
+                        if (config?.expose?.declarationTypes?.length) {
+                            tsconfig.include.push(...config.expose.declarationTypes.map((i) => `${root}${i}`));
                         }
 
                         fs.writeFileSync(tsconfigPath, JSON.stringify(tsconfig, null, 2));

@@ -2,7 +2,7 @@ import { IConfig } from '.vendor/_utils/interfaces';
 
 const vendorConfig: IConfig = {
     expose: {
-        declarationTypes: 'global.d.ts',
+        declarationTypes: ['global.d.ts'],
         server: {
             enabled: true,
             port: 8888,

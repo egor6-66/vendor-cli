@@ -2,7 +2,7 @@ import { build, BuildOptions, context } from 'esbuild';
 import path from 'path';
 
 import { buildTypesPlugin, htmlPlugin, rebuildNotifyPlugin } from '../esbuild/plugins';
-import { Config } from '../interfaces';
+import { IConfig } from '../interfaces';
 import { emitter, message, paths } from '../utils';
 
 class Esbuild {
@@ -14,7 +14,7 @@ class Esbuild {
         minify: true,
         metafile: true,
         sourcemap: true,
-        packages: 'bundle',
+        packages: 'external',
         format: 'esm',
     };
 
@@ -22,35 +22,21 @@ class Esbuild {
         this.emitter = emitter;
     }
 
-    async buildClientConfig() {
-        const configPath = path.join(__dirname, '..', '..');
-
-        try {
-            return build({
-                outdir: configPath,
-                entryNames: 'config',
-                entryPoints: [path.resolve('vendor.config.ts')],
-                bundle: true,
-                platform: 'node',
-                minify: true,
-                sourcemap: false,
-            }).then(() => {
-                return require(path.join(configPath, 'config.js')).default as Config.IConfig;
-            });
-        } catch (e) {
-            message('error', e);
-        }
-    }
-
-    async buildPlayground(config: Config.IConfig) {
+    async buildPlayground(config: IConfig) {
         try {
             const inputOutput = {
                 outdir: paths.playground,
-                entryNames: 'playground.[hash]',
+                entryNames: '[name]-[hash]',
                 entryPoints: [path.resolve(config.expose.server.playground.root)],
             };
 
-            const esbuildConfig = this.updateConfig(config.expose.server.playground.config, config.expose.config, [htmlPlugin(emitter)], inputOutput);
+            const esbuildConfig = this.updateConfig(
+                config.expose.server.playground.esbuildConfig,
+                config.expose.esbuildConfig,
+                [htmlPlugin(emitter)],
+                inputOutput
+            );
+
             context(esbuildConfig).then((res) => res.watch());
             message('success', `🎮 Playground started 🎮`);
         } catch (e) {
@@ -58,19 +44,25 @@ class Esbuild {
         }
     }
 
-    async buildEntries(config: Config.IConfig) {
+    async buildEntries(config: IConfig) {
         if (!config.expose.entries) return;
 
         try {
             return await Promise.all(
                 config.expose.entries.map(async (entry) => {
                     const inputOutput = {
-                        outdir: path.join(paths.output, entry.name),
-                        entryNames: entry.name,
+                        outdir: path.join(paths.output, entry.name, `v_${entry.version}`),
                         entryPoints: [path.resolve(entry.target)],
                     };
 
-                    const esbuildConfig = this.updateConfig(entry.config, config.expose.config, [rebuildNotifyPlugin(emitter)], inputOutput);
+                    const location = `${entry.name}/v_${entry.version}`;
+
+                    const esbuildConfig = this.updateConfig(
+                        entry.esbuildConfig,
+                        config.expose.esbuildConfig,
+                        [rebuildNotifyPlugin(emitter, location)],
+                        inputOutput
+                    );
 
                     const updEntry = {
                         checkTypes: true,
@@ -79,7 +71,7 @@ class Esbuild {
                     };
 
                     if (updEntry.checkTypes) {
-                        updEntry.config.plugins.push(buildTypesPlugin);
+                        updEntry.config.plugins.push(buildTypesPlugin(location));
                     }
 
                     if (updEntry.watch) {

@@ -45,6 +45,8 @@ module.exports = {
     ],
 
     rules: {
+        'no-case-declarations': 0,
+        'sonarjs/no-nested-switch': 0,
         'promise/no-nesting': 0,
         '@typescript-eslint/no-var-requires': 0,
         'promise/catch-or-return': 0,
