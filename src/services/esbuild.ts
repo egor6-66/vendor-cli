@@ -8,6 +8,16 @@ import { emitter, message, paths } from '../utils';
 class Esbuild {
     emitter!: emitter.IEmitter;
 
+    defaultConfig: BuildOptions = {
+        bundle: true,
+        platform: 'browser',
+        minify: true,
+        metafile: true,
+        sourcemap: true,
+        packages: 'bundle',
+        format: 'esm',
+    };
+
     constructor(emitter: emitter.IEmitter) {
         this.emitter = emitter;
     }
@@ -33,32 +43,14 @@ class Esbuild {
     }
 
     async buildPlayground(config: Config.IConfig) {
-        const expConfig = config.expose.config || {};
-        const playgroundConfig = config.expose.server.playground.config || {};
-
-        const clientEsbuildConfig: any = { ...expConfig, ...playgroundConfig };
-
-        const plugins = clientEsbuildConfig?.plugins ? [...clientEsbuildConfig.plugins] : [];
-
-        plugins.push(htmlPlugin(emitter));
-
         try {
-            const esbuildConfig: BuildOptions = {
+            const inputOutput = {
                 outdir: paths.playground,
                 entryNames: 'playground.[hash]',
                 entryPoints: [path.resolve(config.expose.server.playground.root)],
-                platform: 'browser',
-                bundle: true,
-                minify: true,
-                metafile: true,
-                sourcemap: true,
-                packages: 'bundle',
-                format: 'esm',
-                ...expConfig,
-                ...playgroundConfig,
-                plugins,
             };
 
+            const esbuildConfig = this.updateConfig(config.expose.server.playground.config, config.expose.config, [htmlPlugin(emitter)], inputOutput);
             context(esbuildConfig).then((res) => res.watch());
             message('success', `🎮 Playground started 🎮`);
         } catch (e) {
@@ -66,59 +58,48 @@ class Esbuild {
         }
     }
 
-    async buildEntries(config: Config.IConfig): Promise<Array<{ name: string; path: string; watch: boolean }>> {
+    async buildEntries(config: Config.IConfig) {
         if (!config.expose.entries) return;
 
         try {
             return await Promise.all(
                 config.expose.entries.map(async (entry) => {
-                    const expConfig = config.expose.config || {};
-                    const entryConfig = entry.config || {};
-                    const clientEsbuildConfig: any = { ...expConfig, ...entryConfig };
+                    const inputOutput = {
+                        outdir: path.join(paths.output, entry.name),
+                        entryNames: entry.name,
+                        entryPoints: [path.resolve(entry.target)],
+                    };
 
-                    const plugins = clientEsbuildConfig?.plugins ? [...clientEsbuildConfig.plugins] : [];
+                    const esbuildConfig = this.updateConfig(entry.config, config.expose.config, [rebuildNotifyPlugin(emitter)], inputOutput);
 
                     const updEntry = {
                         checkTypes: true,
                         ...entry,
-                        config: {
-                            outdir: path.join(paths.output, entry.name),
-                            entryNames: entry.name,
-                            entryPoints: [path.resolve(entry.target)],
-                            bundle: true,
-                            minify: true,
-                            sourcemap: true,
-                            metafile: true,
-                            format: 'esm',
-                            ...expConfig,
-                            ...entryConfig,
-                            plugins,
-                        },
+                        config: esbuildConfig,
                     };
 
                     if (updEntry.checkTypes) {
                         updEntry.config.plugins.push(buildTypesPlugin);
                     }
 
-                    updEntry.config.plugins.push(rebuildNotifyPlugin(emitter));
-
                     if (updEntry.watch) {
-                        await context({ ...updEntry.config, plugins } as BuildOptions).then((res) => res.watch());
+                        await context(updEntry.config).then((res) => res.watch());
                         message('success', `👀 Watching: ${updEntry.name}. 👀`);
                     } else {
-                        await build({ ...updEntry.config, plugins } as BuildOptions);
+                        await build(updEntry.config);
                     }
-
-                    return {
-                        name: updEntry.name,
-                        path: updEntry.target,
-                        watch: updEntry.watch,
-                    };
                 })
             );
         } catch (e) {
             message('error', e);
         }
+    }
+
+    updateConfig(main = {}, second = {}, plugins = [], inputOutput = {}) {
+        const config: BuildOptions = { ...this.defaultConfig, ...second, ...main, ...inputOutput };
+        config.plugins && plugins.push(...config.plugins);
+
+        return { ...config, plugins };
     }
 }
 
