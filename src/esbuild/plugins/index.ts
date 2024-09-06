@@ -1,5 +1,5 @@
+import buildBundlePlugin from './buildBundle';
 import buildTypesPlugin from './buildTypes';
 import htmlPlugin from './html';
-import rebuildNotifyPlugin from './rebuildNotify';
 
-export { buildTypesPlugin, htmlPlugin, rebuildNotifyPlugin };
+export { buildBundlePlugin, buildTypesPlugin, htmlPlugin };

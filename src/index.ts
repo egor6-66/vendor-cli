@@ -4,9 +4,9 @@ import path from 'path';
 
 const { Command } = require('commander');
 const program = new Command();
-
 import { build } from 'esbuild';
 
+import { IConfig } from './interfaces';
 import * as services from './services';
 import { emitter, message } from './utils';
 
@@ -31,9 +31,17 @@ class Root {
                 new services.Builder(config, emitter);
             })
             .description('Compiles all the packages you want to expose.');
+
+        program
+            .command('link')
+            .action(async () => {
+                const config = await this.getConfig();
+                new services.Link(config);
+            })
+            .description('Creating config and working directories.');
     }
 
-    async getConfig() {
+    async getConfig(): Promise<IConfig> {
         try {
             await build({
                 outdir: path.join(__dirname),

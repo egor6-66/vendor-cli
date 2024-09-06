@@ -41,7 +41,7 @@ function bytesToSize(bytes: number) {
 
     const index = Math.floor(Math.log(bytes) / Math.log(kbToBytes));
 
-    return `${parseFloat((bytes / Math.pow(kbToBytes, index)).toFixed(0))} ${sizes[index]}`;
+    return `${parseFloat((bytes / Math.pow(kbToBytes, index)).toFixed(3))} ${sizes[index]}`;
 }
 
 export { bytesToSize, dir, file };

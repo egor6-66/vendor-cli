@@ -30,9 +30,12 @@ class FilesCreator {
 
         const script = `
 <script>
-const events = new EventSource('http://localhost:${config?.expose?.server?.port || 8888}/playgroundRebuild')
-events.onmessage = () => { window.location.reload()}
-</script>\n`;
+const ws = new WebSocket('ws://localhost:9172/ws');
+ws.onmessage = function({data}) { 
+  const dataParse = JSON.parse(data)
+  dataParse.event === 'renderHTML' && window.location.reload()
+};
+</script>`;
 
         fs.writeFileSync(paths.templateHtml, updateFile.insertTextNextToWord(clientHtml, '</body>', script, 'before'));
     }

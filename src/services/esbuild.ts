@@ -1,7 +1,7 @@
 import { build, BuildOptions, context } from 'esbuild';
 import path from 'path';
 
-import { buildTypesPlugin, htmlPlugin, rebuildNotifyPlugin } from '../esbuild/plugins';
+import { buildBundlePlugin, buildTypesPlugin, htmlPlugin } from '../esbuild/plugins';
 import { IConfig } from '../interfaces';
 import { emitter, message, paths } from '../utils';
 
@@ -33,11 +33,15 @@ class Esbuild {
             const esbuildConfig = this.updateConfig(
                 config.expose.server.playground.esbuildConfig,
                 { ...config.expose.esbuildConfig, packages: 'bundle' },
-                [htmlPlugin(emitter)],
+                [
+                    htmlPlugin(() => {
+                        console.log('rebuild');
+                        emitter.emit('renderHTML', {});
+                    }),
+                ],
                 inputOutput
             );
 
-            console.log('buildPlayground', esbuildConfig);
             context(esbuildConfig).then((res) => res.watch());
             message('success', `🎮 Playground started 🎮`);
         } catch (e) {
@@ -51,9 +55,10 @@ class Esbuild {
         try {
             return await Promise.all(
                 config.expose.entries.map(async (entry) => {
-                    const inputOutput = {
-                        outdir: path.join(paths.output, entry.name, `v_${entry.version}`),
+                    const inputOutput: BuildOptions = {
+                        outdir: path.join(paths.output, entry.name, `v_${entry.version}`, 'bundle'),
                         entryPoints: [path.resolve(entry.target)],
+                        write: false,
                     };
 
                     const location = `${entry.name}/v_${entry.version}`;
@@ -61,7 +66,11 @@ class Esbuild {
                     const esbuildConfig = this.updateConfig(
                         entry.esbuildConfig,
                         config.expose.esbuildConfig,
-                        [rebuildNotifyPlugin(emitter, location)],
+                        [
+                            buildBundlePlugin(location, () => {
+                                emitter.emit('updateBundle', { version: entry.version, name: entry.name });
+                            }),
+                        ],
                         inputOutput
                     );
 
@@ -72,10 +81,12 @@ class Esbuild {
                     };
 
                     if (updEntry.checkTypes) {
-                        updEntry.config.plugins.push(buildTypesPlugin(location));
+                        updEntry.config.plugins.push(
+                            buildTypesPlugin(location, () => {
+                                emitter.emit('updateTypes', { version: entry.version, name: entry.name });
+                            })
+                        );
                     }
-
-                    console.log('buildEntries', esbuildConfig);
 
                     if (updEntry.watch) {
                         await context(updEntry.config).then((res) => res.watch());

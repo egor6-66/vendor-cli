@@ -12,11 +12,12 @@ interface IPlayground {
 interface IServer {
     enabled?: boolean;
     port?: number;
+    wsPort?: number;
     serveStatic?: 'node' | 'nginx';
     playground?: IPlayground;
 }
 
-interface IExposeEntry {
+interface IEntry {
     version: number;
     name: string;
     target: string;
@@ -29,7 +30,7 @@ export interface IExpose {
     declarationTypes?: Array<string>;
     server?: IServer;
     esbuildConfig?: EsbuildConfig;
-    entries: Array<IExposeEntry>;
+    entries: Array<IEntry>;
 }
 
 export default IExpose;

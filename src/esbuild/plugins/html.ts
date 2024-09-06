@@ -2,9 +2,9 @@ import { PluginBuild } from 'esbuild';
 import fs from 'fs';
 import path from 'path';
 
-import { emitter, paths, updateFile } from '../../utils';
+import { paths, updateFile } from '../../utils';
 
-const html = (emitter: emitter.IEmitter) => ({
+const html = (cb: () => void) => ({
     name: 'html',
     setup(build: PluginBuild) {
         build.onStart(() => {
@@ -13,7 +13,7 @@ const html = (emitter: emitter.IEmitter) => ({
                     const ext = file.split('.').pop();
 
                     if (ext !== 'html') {
-                        fs.unlinkSync(path.join(build.initialOptions.outdir, file));
+                        // fs.unlinkSync(path.join(build.initialOptions.outdir, file));
                     }
                 });
             });
@@ -38,7 +38,7 @@ const html = (emitter: emitter.IEmitter) => ({
             }, html);
 
             fs.writeFile(playgroundHtmlPath, newHtml, () => {
-                emitter.emit('renderHTML');
+                cb();
             });
         });
     },
