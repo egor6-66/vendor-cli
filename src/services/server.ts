@@ -9,6 +9,13 @@ class Server {
 
     app = express();
 
+    headers = {
+        'Content-Type': 'text/event-stream',
+        Connection: 'keep-alive',
+        'Cache-Control': 'no-cache',
+        'Access-Control-Allow-Origin': '*',
+    };
+
     constructor(config: IConfig) {
         if (config) {
             this.config = config;
@@ -30,6 +37,7 @@ class Server {
 
         this.app.use('/playground', express.static(paths.playground));
         this.app.get('/output/:path*', (req: any, res) => {
+            res.set(this.headers);
             res.appendHeader('Cache-Control', 'no-cache');
             res.sendFile(path.join(paths.output, req.params.path, req.params[0]));
         });

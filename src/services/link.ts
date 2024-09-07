@@ -11,28 +11,40 @@ const AdmZip = require('adm-zip');
 class Link {
     config!: IConfig;
 
+    cssPaths: Array<string> = [];
+
     constructor(config: IConfig) {
         this.config = config;
 
         if (config?.remote?.entries?.length) {
             this.downloadFiles(config.remote);
+        }
+    }
 
-            this.getRemoteConfigs(config.remote).then((res: any) => {
+    downloadFiles(remote: IConfig['remote']) {
+        Promise.all(
+            remote.entries.map(async (entry) => {
+                const url = entry?.url || remote.url;
+
+                return await this.downloadFile(url, 1, entry.name, ['bundle', 'types'], true);
+            })
+        ).then(() => {
+            FilesCreator.indexCss(remote.publicPath, this.cssPaths);
+            this.getRemoteConfigs(remote).then(async (res: any) => {
                 if (!res?.length) return;
-                FilesCreator.public(res, config.remote.publicPath);
-                FilesCreator.indexCss(config.remote.publicPath);
+                await FilesCreator.addWatcher(res, remote.publicPath);
                 res.forEach(({ wsUrl }) => {
                     if (wsUrl) {
                         const ws = new WebSocket(wsUrl);
 
                         ws.on('message', (message: string) => {
                             const { event, data } = JSON.parse(message);
-                            console.log(data);
 
                             if (event === 'updateEntry') {
-                                config.remote.entries.forEach((entry) => {
-                                    if (data.version === entry.version && data.name === entry.name && entry.watch) {
-                                        const url = entry?.url || config.remote?.url;
+                                console.log(data, this.cssPaths);
+                                remote.entries.forEach((entry) => {
+                                    if (data.version === entry.version && data.name === entry.name && (remote.watch || entry.watch)) {
+                                        const url = entry?.url || remote?.url;
                                         this.downloadFile(url, entry.version, entry.name, [data.folder]);
                                     }
                                 });
@@ -41,20 +53,10 @@ class Link {
                     }
                 });
             });
-        }
+        });
     }
 
-    async downloadFiles(remote: IConfig['remote']) {
-        return Promise.all(
-            remote.entries.map(async (entry) => {
-                const url = entry?.url || remote.url;
-
-                return await this.downloadFile(url, 1, entry.name, ['bundle', 'types']);
-            })
-        );
-    }
-
-    async downloadFile(url, version, entryName: string, folders: Array<'bundle' | 'types'>) {
+    async downloadFile(url, version, entryName: string, folders: Array<'bundle' | 'types'>, init?: boolean) {
         const outputPath = path.join(paths.input, entryName, `v_${version}`);
 
         try {
@@ -62,41 +64,32 @@ class Link {
                 mkdirSync(outputPath, { recursive: true });
             }
 
-            folders.map(async (folder) => {
-                return await fetch(`${url}/output/${entryName}/v_${version}/${folder}.zip`, { cache: 'no-cache' })
-                    .then((res) => res.arrayBuffer())
-                    .then(async (buffer) => {
-                        const zip = new AdmZip(Buffer.from(buffer));
-                        const zipEntries = zip.getEntries();
+            return await Promise.all(
+                folders.map(async (folder) => {
+                    return await fetch(`${url}/output/${entryName}/v_${version}/${folder}.zip`, { cache: 'no-cache' })
+                        .then((res) => res.arrayBuffer())
+                        .then(async (buffer) => {
+                            const zip = new AdmZip(Buffer.from(buffer));
+                            const zipEntries = zip.getEntries();
+                            const sccPath = path.resolve(this.config?.remote?.publicPath || 'public', 'vendor', entryName);
 
-                        return await Promise.all(
                             zipEntries.map(async (i) => {
-                                const entryPath = path.join(outputPath, folder, i.entryName);
-
                                 if (i.entryName === 'index.css' || i.entryName === 'index.css.map') {
-                                    const sccPath = path.resolve(this.config?.remote?.publicPath || 'public', 'vendor');
-                                    const cssEntry = path.join(sccPath, entryName, 'index.css');
-
-                                    if (fs.existsSync(cssEntry)) {
-                                        await fs.unlinkSync(cssEntry);
-                                        await fs.unlinkSync(`${cssEntry}.map`);
+                                    if (i.entryName === 'index.css' && init) {
+                                        this.cssPaths.push(entryName);
                                     }
 
-                                    zip.extractEntryTo(i.entryName, path.join(sccPath, entryName));
-                                } else {
-                                    if (fs.existsSync(entryPath) && !fs.lstatSync(entryPath).isDirectory()) {
-                                        await fs.unlinkSync(entryPath);
-                                    }
-
-                                    zip.extractEntryTo(i.entryName, path.join(outputPath, folder));
+                                    return zip.extractEntryTo(i.entryName, path.join(sccPath), true, true);
                                 }
-                            })
-                        );
-                    })
-                    .then(() => {
-                        message('success', `${entryName} ${folder} updated`);
-                    });
-            });
+
+                                zip.extractEntryTo(i.entryName, path.join(outputPath, folder), true, true);
+                            });
+                        })
+                        .then(() => {
+                            message('success', `${entryName} ${folder} updated`);
+                        });
+                })
+            );
         } catch (e) {
             message('error', e);
         }

@@ -1,6 +1,4 @@
 (() => {
-    //urls;
-
     function createLink(path) {
         const id = `vendorCSS`;
         const href = path;
@@ -29,15 +27,5 @@
 
     createLink('../vendor/index.css');
 
-    urls.forEach((url) => {
-        const ws = new WebSocket(url);
-
-        ws.onmessage = function (res) {
-            const { event, data } = JSON.parse(res.data);
-
-            if (event === 'updateEntry' && data?.folder === 'bundle') {
-                reloadCss();
-            }
-        };
-    });
+    //watcher
 })();
