@@ -23,6 +23,14 @@ const vendorConfig: IConfig = {
             },
         ],
     },
+    remote: {
+        publicPath: 'public',
+        host: 'http://localhost',
+        entries: [
+            { watch: true, name: 'components', version: 1 },
+            { watch: true, name: 'interfaces', version: 1 },
+        ],
+    },
 };
 
 export default vendorConfig;

@@ -13,7 +13,6 @@ interface IServer {
     enabled?: boolean;
     port?: number;
     wsPort?: number;
-    serveStatic?: 'node' | 'nginx';
     playground?: IPlayground;
 }
 

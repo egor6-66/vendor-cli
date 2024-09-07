@@ -1,13 +1,14 @@
 interface IEntry {
-    port?: number;
-    host?: string;
+    url?: string;
+    watch?: boolean;
     version: number;
     name: string;
 }
 
 interface IRemote {
-    port?: number;
-    host: string;
+    publicPath?: string;
+    url: string;
+    watch?: boolean;
     entries: Array<IEntry>;
 }
 

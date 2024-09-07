@@ -24,20 +24,56 @@ class FilesCreator {
     }
 
     playground(config: IConfig) {
-        if (!config?.expose?.server) return;
+        const playgroundJs = 'playground.js';
+        const playgroundScriptPath = path.join(this.templatesPath, 'scripts', playgroundJs);
+        const content = fs.readFileSync(playgroundScriptPath).toString();
+        const wsString = `const ws = new WebSocket('ws://localhost:${config?.expose?.server?.wsPort || constants.ports.ws}/ws');\n`;
+        fs.writeFileSync(path.join(paths.playground, playgroundJs), updateFile.insertTextNextToWord(content, '//ws', wsString, 'before'));
         const clientHtmlPath = path.resolve(config?.expose?.server.playground.htmlPath);
         const clientHtml = fs.readFileSync(clientHtmlPath).toString();
+        const script = `<script src="./${playgroundJs}"></script>\n`;
+        fs.writeFileSync(path.join(paths.playground, 'index.html'), updateFile.insertTextNextToWord(clientHtml, '</body>', script, 'before'));
+    }
 
-        const script = `
-<script>
-const ws = new WebSocket('ws://localhost:9172/ws');
-ws.onmessage = function({data}) { 
-  const dataParse = JSON.parse(data)
-  dataParse.event === 'renderHTML' && window.location.reload()
-};
-</script>`;
+    public(urls: Array<{ wsUrl: string }>, publicPath = 'public') {
+        const vendorFolder = path.resolve(publicPath, 'vendor');
 
-        fs.writeFileSync(paths.templateHtml, updateFile.insertTextNextToWord(clientHtml, '</body>', script, 'before'));
+        if (!fs.existsSync(vendorFolder)) {
+            fs.mkdirSync(vendorFolder, { recursive: true });
+        }
+
+        const publicJs = 'public.js';
+        const publicScriptPath = path.join(this.templatesPath, 'scripts', publicJs);
+        const content = fs.readFileSync(publicScriptPath).toString();
+
+        const wsString = urls.reduce((acc, i) => {
+            acc += `'${i.wsUrl}'`;
+
+            return acc;
+        }, '');
+
+        fs.writeFileSync(
+            path.resolve(publicPath, 'vendor', 'index.js'),
+            updateFile.insertTextNextToWord(content, '//urls', `\nconst urls = [${wsString}]`, 'after')
+        );
+        const clientHtmlPath = path.resolve(publicPath, 'index.html');
+        const clientHtml = fs.readFileSync(clientHtmlPath).toString();
+        const script = `<script src="./vendor/index.js"></script>\n`;
+        fs.writeFileSync(clientHtmlPath, updateFile.insertTextNextToWord(clientHtml, '</body>', script, 'before'));
+    }
+
+    indexCss(publicPath = 'public') {
+        fs.readdir(path.resolve(publicPath, 'vendor'), (err, files) => {
+            const imports = files.reduce((acc, i) => {
+                if (fs.lstatSync(path.resolve(publicPath, 'vendor', i)).isDirectory()) {
+                    acc += `@import "./${i}/index.css";\n`;
+                }
+
+                return acc;
+            }, '');
+
+            fs.writeFileSync(path.resolve(publicPath, 'vendor', 'index.css'), imports);
+        });
     }
 }
 

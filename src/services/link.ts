@@ -3,7 +3,9 @@ import path from 'path';
 import WebSocket from 'ws';
 
 import { IConfig } from '../interfaces';
-import { constants, message, paths } from '../utils';
+import { message, paths } from '../utils';
+
+import FilesCreator from './filesCreator';
 
 const AdmZip = require('adm-zip');
 class Link {
@@ -15,15 +17,25 @@ class Link {
         if (config?.remote?.entries?.length) {
             this.downloadFiles(config.remote);
 
-            this.getRemoteConfigs(config.remote).then((res) => {
-                res.forEach(({ wsUrl, socketEvent, version, entryName, host }) => {
+            this.getRemoteConfigs(config.remote).then((res: any) => {
+                if (!res?.length) return;
+                FilesCreator.public(res, config.remote.publicPath);
+                FilesCreator.indexCss(config.remote.publicPath);
+                res.forEach(({ wsUrl }) => {
                     if (wsUrl) {
                         const ws = new WebSocket(wsUrl);
-                        ws.on('message', (message: string) => {
-                            const data = JSON.parse(message);
 
-                            if (data.event === socketEvent) {
-                                this.downloadFile(host, version, entryName, [data.data.folder]);
+                        ws.on('message', (message: string) => {
+                            const { event, data } = JSON.parse(message);
+                            console.log(data);
+
+                            if (event === 'updateEntry') {
+                                config.remote.entries.forEach((entry) => {
+                                    if (data.version === entry.version && data.name === entry.name && entry.watch) {
+                                        const url = entry?.url || config.remote?.url;
+                                        this.downloadFile(url, entry.version, entry.name, [data.folder]);
+                                    }
+                                });
                             }
                         });
                     }
@@ -35,15 +47,14 @@ class Link {
     async downloadFiles(remote: IConfig['remote']) {
         return Promise.all(
             remote.entries.map(async (entry) => {
-                const host = entry?.host || remote.host;
+                const url = entry?.url || remote.url;
 
-                return await this.downloadFile(host, 1, entry.name, ['bundle', 'types']);
+                return await this.downloadFile(url, 1, entry.name, ['bundle', 'types']);
             })
         );
     }
 
-    async downloadFile(host, version, entryName: string, folders: Array<'bundle' | 'types'>) {
-        const url = `${host}/output/${entryName}/v_${version}/`;
+    async downloadFile(url, version, entryName: string, folders: Array<'bundle' | 'types'>) {
         const outputPath = path.join(paths.input, entryName, `v_${version}`);
 
         try {
@@ -52,7 +63,7 @@ class Link {
             }
 
             folders.map(async (folder) => {
-                return await fetch(`${url}/${folder}.zip`, { cache: 'no-cache' })
+                return await fetch(`${url}/output/${entryName}/v_${version}/${folder}.zip`, { cache: 'no-cache' })
                     .then((res) => res.arrayBuffer())
                     .then(async (buffer) => {
                         const zip = new AdmZip(Buffer.from(buffer));
@@ -62,11 +73,23 @@ class Link {
                             zipEntries.map(async (i) => {
                                 const entryPath = path.join(outputPath, folder, i.entryName);
 
-                                if (fs.existsSync(entryPath) && !fs.lstatSync(entryPath).isDirectory()) {
-                                    await fs.unlinkSync(entryPath);
-                                }
+                                if (i.entryName === 'index.css' || i.entryName === 'index.css.map') {
+                                    const sccPath = path.resolve(this.config?.remote?.publicPath || 'public', 'vendor');
+                                    const cssEntry = path.join(sccPath, entryName, 'index.css');
 
-                                zip.extractEntryTo(i.entryName, path.join(outputPath, folder));
+                                    if (fs.existsSync(cssEntry)) {
+                                        await fs.unlinkSync(cssEntry);
+                                        await fs.unlinkSync(`${cssEntry}.map`);
+                                    }
+
+                                    zip.extractEntryTo(i.entryName, path.join(sccPath, entryName));
+                                } else {
+                                    if (fs.existsSync(entryPath) && !fs.lstatSync(entryPath).isDirectory()) {
+                                        await fs.unlinkSync(entryPath);
+                                    }
+
+                                    zip.extractEntryTo(i.entryName, path.join(outputPath, folder));
+                                }
                             })
                         );
                     })
@@ -80,20 +103,20 @@ class Link {
     }
 
     async getRemoteConfigs(remote: IConfig['remote']) {
-        return Promise.all(
-            remote.entries.map(async (entry) => {
-                const host = entry?.host || remote.host;
-                const port = entry?.port || remote.port || constants.ports.server;
+        const urls = remote.entries.reduce((acc, entry) => {
+            const url = entry?.url || remote.url;
+            !acc.includes(url) && acc.push(url);
 
-                return await fetch(`${host}:${port}/remoteConfig`)
+            return acc;
+        }, []);
+
+        return Promise.all(
+            urls.map(async (url) => {
+                return await fetch(`${url}/remoteConfig`)
                     .then((res) => res.json())
                     .then((data) => {
                         return {
-                            wsUrl: `ws://${host.split('//')[1].split(':')[0]}:${data.wsPort}`,
-                            socketEvent: `${entry.name}.v_${entry.version}`,
-                            host: host,
-                            version: entry.version,
-                            entryName: entry.name,
+                            wsUrl: `ws://${url.split('//')[1].split(':')[0]}:${data.wsPort}/ws`,
                         };
                     });
             })

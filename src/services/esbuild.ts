@@ -3,10 +3,12 @@ import path from 'path';
 
 import { buildBundlePlugin, buildTypesPlugin, htmlPlugin } from '../esbuild/plugins';
 import { IConfig } from '../interfaces';
-import { emitter, message, paths } from '../utils';
+import { message, paths } from '../utils';
+
+import { IWsServer } from './ws';
 
 class Esbuild {
-    emitter!: emitter.IEmitter;
+    wsServer!: IWsServer;
 
     defaultConfig: BuildOptions = {
         bundle: true,
@@ -18,15 +20,16 @@ class Esbuild {
         format: 'esm',
     };
 
-    constructor(emitter: emitter.IEmitter) {
-        this.emitter = emitter;
+    constructor(wsServer: IWsServer) {
+        console.log(wsServer);
+        this.wsServer = wsServer;
     }
 
     async buildPlayground(config: IConfig) {
         try {
             const inputOutput = {
                 outdir: paths.playground,
-                entryNames: '[name]-[hash]',
+                entryNames: 'index',
                 entryPoints: [path.resolve(config.expose.server.playground.root)],
             };
 
@@ -34,9 +37,8 @@ class Esbuild {
                 config.expose.server.playground.esbuildConfig,
                 { ...config.expose.esbuildConfig, packages: 'bundle' },
                 [
-                    htmlPlugin(() => {
-                        console.log('rebuild');
-                        emitter.emit('renderHTML', {});
+                    htmlPlugin((links) => {
+                        this.wsServer.sendToClient('updatePlayground', links);
                     }),
                 ],
                 inputOutput
@@ -68,7 +70,11 @@ class Esbuild {
                         config.expose.esbuildConfig,
                         [
                             buildBundlePlugin(location, () => {
-                                emitter.emit('updateBundle', { version: entry.version, name: entry.name });
+                                this.wsServer.sendToClient('updateEntry', {
+                                    version: entry.version,
+                                    name: entry.name,
+                                    folder: 'bundle',
+                                });
                             }),
                         ],
                         inputOutput
@@ -83,7 +89,11 @@ class Esbuild {
                     if (updEntry.checkTypes) {
                         updEntry.config.plugins.push(
                             buildTypesPlugin(location, () => {
-                                emitter.emit('updateTypes', { version: entry.version, name: entry.name });
+                                this.wsServer.sendToClient('updateEntry', {
+                                    version: entry.version,
+                                    name: entry.name,
+                                    folder: 'types',
+                                });
                             })
                         );
                     }

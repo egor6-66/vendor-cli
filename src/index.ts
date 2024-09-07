@@ -8,7 +8,7 @@ import { build } from 'esbuild';
 
 import { IConfig } from './interfaces';
 import * as services from './services';
-import { emitter, message } from './utils';
+import { message } from './utils';
 
 class Root {
     constructor() {
@@ -28,7 +28,7 @@ class Root {
             .command('build')
             .action(async () => {
                 const config = await this.getConfig();
-                new services.Builder(config, emitter);
+                new services.Builder(config);
             })
             .description('Compiles all the packages you want to expose.');
 
