@@ -12,7 +12,7 @@ class FilesCreator {
     configAndWorkingDirs() {
         const tsconfig = require(this.tsconfigPath);
         const tsPaths = tsconfig?.compilerOptions?.paths;
-        const vendorPath = { '.vendor/_utils/interfaces': ['./_vendor/_utils/interfaces'] };
+        const vendorPath = { '.vendor/_utils/interfaces': ['./vendor/_utils/interfaces'] };
 
         tsconfig.compilerOptions.paths = tsPaths ? { ...tsPaths, ...vendorPath } : vendorPath;
         fs.writeFileSync(this.tsconfigPath, JSON.stringify(tsconfig, null, 2));
@@ -26,7 +26,7 @@ class FilesCreator {
         }
 
         fs.copyFileSync(path.join(this.templatesPath, constants.configName), paths.config);
-        fs.cpSync(path.join(this.templatesPath, constants.workingDirName), paths.workingDir, { recursive: true, force: true });
+        fs.cpSync(path.join(this.templatesPath, 'vendor'), paths.workingDir, { recursive: true, force: true });
         fs.cpSync(path.join(__dirname, '../', 'interfaces'), path.join(paths.utils, 'interfaces'), { recursive: true, force: true });
 
         message('success', '😎Initialization was successful😎');
@@ -96,7 +96,7 @@ class FilesCreator {
         const { bundler, typesPaths } = remote.entries.reduce(
             (acc, entry) => {
                 acc.bundler += `'${entry.name}/v_${entry.version}': path.resolve('.vendor', 'input', '${entry.name}', 'v_${entry.version}', 'bundle', 'index.js')\n,`;
-                acc.typesPaths[`${entry.name}/v_${entry.version}`] = [`./_vendor/input/${entry.name}/v_${entry.version}/types`];
+                acc.typesPaths[`${entry.name}/v_${entry.version}`] = [`./.vendor/input/${entry.name}/v_${entry.version}/types`];
 
                 return acc;
             },
