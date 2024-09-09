@@ -28,7 +28,6 @@ class Ws {
         });
 
         wss.on('connection', (ws: WebSocket) => {
-            console.log(ws);
             this.ws = ws;
         });
 

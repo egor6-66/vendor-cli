@@ -30,10 +30,9 @@ class Link {
             })
         ).then(() => {
             FilesCreator.aliases(remote);
-            FilesCreator.indexCss(remote.publicPath, this.cssPaths);
+            FilesCreator.bootstrap(this.cssPaths);
             this.getRemoteConfigs(remote).then(async (res: any) => {
                 if (!res?.length) return;
-                await FilesCreator.addWatcher(res, remote.publicPath);
                 res.forEach(({ wsUrl }) => {
                     if (wsUrl) {
                         const ws = new WebSocket(wsUrl);
@@ -42,7 +41,6 @@ class Link {
                             const { event, data } = JSON.parse(message);
 
                             if (event === 'updateEntry') {
-                                console.log(data, this.cssPaths);
                                 remote.entries.forEach((entry) => {
                                     if (data.version === entry.version && data.name === entry.name && (remote.watch || entry.watch)) {
                                         const url = entry?.url || remote?.url;
@@ -72,15 +70,10 @@ class Link {
                         .then(async (buffer) => {
                             const zip = new AdmZip(Buffer.from(buffer));
                             const zipEntries = zip.getEntries();
-                            const sccPath = path.resolve(this.config?.remote?.publicPath || 'public', 'vendor', entryName);
 
                             zipEntries.map(async (i) => {
-                                if (i.entryName === 'index.css' || i.entryName === 'index.css.map') {
-                                    if (i.entryName === 'index.css' && init) {
-                                        this.cssPaths.push(entryName);
-                                    }
-
-                                    return zip.extractEntryTo(i.entryName, path.join(sccPath), true, true);
+                                if (i.entryName === 'index.css') {
+                                    this.cssPaths.push(`${entryName}/v_${version}`);
                                 }
 
                                 zip.extractEntryTo(i.entryName, path.join(outputPath, folder), true, true);

@@ -21,7 +21,6 @@ class Esbuild {
     };
 
     constructor(wsServer: IWsServer) {
-        console.log(wsServer);
         this.wsServer = wsServer;
     }
 

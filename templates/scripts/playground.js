@@ -36,7 +36,6 @@
 
     ws.onmessage = function (res) {
         const { event, data } = JSON.parse(res.data);
-        console.log(data);
 
         if (event === 'updatePlayground') {
             data.js.forEach((i) => {

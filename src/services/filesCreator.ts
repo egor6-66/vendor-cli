@@ -12,7 +12,7 @@ class FilesCreator {
     configAndWorkingDirs() {
         const tsconfig = require(this.tsconfigPath);
         const tsPaths = tsconfig?.compilerOptions?.paths;
-        const vendorPath = { '.vendor/_utils/interfaces': ['./vendor/_utils/interfaces'] };
+        const vendorPath = { '.vendor/_utils/*': ['./vendor/_utils/*'] };
 
         tsconfig.compilerOptions.paths = tsPaths ? { ...tsPaths, ...vendorPath } : vendorPath;
         fs.writeFileSync(this.tsconfigPath, JSON.stringify(tsconfig, null, 2));
@@ -51,52 +51,14 @@ class FilesCreator {
         fs.writeFileSync(path.join(paths.playground, 'index.html'), updateFile.insertTextNextToWord(clientHtml, '</body>', script, 'before'));
     }
 
-    indexCss(publicPath = 'public', cssPaths: Array<string>) {
-        const vendorFolder = path.resolve(publicPath, 'vendor');
-
-        if (!fs.existsSync(vendorFolder)) {
-            fs.mkdirSync(vendorFolder, { recursive: true });
-        }
-
+    bootstrap(cssPaths: Array<string>) {
         const imports = cssPaths.reduce((acc, i) => {
-            if (fs.lstatSync(path.resolve(publicPath, 'vendor', i)).isDirectory()) {
-                acc += `@import "./${i}/index.css";\n`;
-            }
+            acc += `import "../input/${i}/bundle/index.css";\n`;
 
             return acc;
         }, '');
 
-        fs.writeFileSync(path.resolve(publicPath, 'vendor', 'index.css'), imports);
-        fs.copyFileSync(path.join(this.templatesPath, 'scripts', 'public.js'), path.join(vendorFolder, 'index.js'));
-        const clientHtmlPath = path.resolve(publicPath, 'index.html');
-        const clientHtml = fs.readFileSync(clientHtmlPath).toString();
-        const script = `<script src="./vendor/index.js"></script>\n`;
-        fs.writeFileSync(clientHtmlPath, updateFile.insertTextNextToWord(clientHtml, '</body>', script, 'before'));
-    }
-
-    async addWatcher(urls: Array<{ wsUrl: string }>, publicPath = 'public') {
-        const publicScriptPath = path.join(this.templatesPath, 'scripts', 'public.js');
-        const content = fs.readFileSync(publicScriptPath).toString();
-
-        const wsString = urls.reduce((acc, i) => {
-            acc += `'${i.wsUrl}'`;
-
-            return acc;
-        }, '');
-
-        const script = `
-        [${wsString}].forEach((url) => {
-        const ws = new WebSocket(url);
-        ws.onmessage = function (res) {
-            const { event, data } = JSON.parse(res.data);
-            if (event === 'updateEntry' && data?.folder === 'bundle') {
-                setTimeout(reloadCss, 500);
-            }
-        };
-    });
-        `;
-
-        await fs.writeFileSync(path.resolve(publicPath, 'vendor', 'index.js'), updateFile.insertTextNextToWord(content, '//watcher', script, 'before'));
+        fs.writeFileSync(path.join(paths.utils, 'bootstrap.js'), imports);
     }
 
     aliases(remote: IConfig['remote']) {
