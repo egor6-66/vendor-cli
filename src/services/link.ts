@@ -29,6 +29,7 @@ class Link {
                 return await this.downloadFile(url, 1, entry.name, ['bundle', 'types'], true);
             })
         ).then(() => {
+            FilesCreator.aliases(remote);
             FilesCreator.indexCss(remote.publicPath, this.cssPaths);
             this.getRemoteConfigs(remote).then(async (res: any) => {
                 if (!res?.length) return;

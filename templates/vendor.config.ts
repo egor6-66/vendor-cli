@@ -6,7 +6,6 @@ const vendorConfig: IConfig = {
         server: {
             enabled: true,
             port: 8888,
-            serveStatic: 'node',
             playground: {
                 enabled: true,
                 root: 'src/index.tsx',
@@ -25,11 +24,9 @@ const vendorConfig: IConfig = {
     },
     remote: {
         publicPath: 'public',
-        host: 'http://localhost',
-        entries: [
-            { watch: true, name: 'components', version: 1 },
-            { watch: true, name: 'interfaces', version: 1 },
-        ],
+        url: 'http://example',
+        watch: true,
+        entries: [{ name: 'example', version: 1 }],
     },
 };
 
