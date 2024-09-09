@@ -1,5 +1,5 @@
 {
-  "version": "0.0.6",
+  "version": "0.0.7",
   "name": "vendor-cli",
   "main": "./dist/index.js",
   "author": "Egor Raybul",
@@ -32,7 +32,6 @@
     "ts-node": "^10.9.1",
     "typescript": "^5.5.4",
     "@types/adm-zip": "^0.5.5"
-
   },
   "dependencies": {
     "adm-zip": "^0.5.16",
