@@ -2,7 +2,7 @@ services:
   nginx:
     container_name: nginx-server
     build:
-      context: ../.vendor
+      context: ../_vendor
       dockerfile: Dockerfile
     volumes:
       - ../../output:/usr/vendor/output

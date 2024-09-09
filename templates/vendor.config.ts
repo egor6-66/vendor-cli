@@ -1,4 +1,4 @@
-import { IConfig } from '.vendor/_utils/interfaces';
+import { IConfig } from '_vendor/_utils/interfaces';
 
 const vendorConfig: IConfig = {
     expose: {
