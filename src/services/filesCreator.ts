@@ -25,8 +25,15 @@ class FilesCreator {
             fs.rmSync(paths.workingDir, { recursive: true, force: true });
         }
 
+        const folders = ['_utils', 'input', 'output', 'playground'];
+
+        fs.mkdirSync(paths.workingDir);
+
+        folders.forEach((i) => {
+            fs.mkdirSync(path.join(paths.workingDir, i));
+        });
+
         fs.copyFileSync(path.join(this.templatesPath, constants.configName), paths.config);
-        fs.cpSync(path.join(this.templatesPath, 'vendor'), paths.workingDir, { recursive: true, force: true });
         fs.cpSync(path.join(__dirname, '../', 'interfaces'), path.join(paths.utils, 'interfaces'), { recursive: true, force: true });
 
         message('success', '😎Initialization was successful😎');
