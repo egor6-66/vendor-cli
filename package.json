@@ -45,7 +45,8 @@
     "url": "git@github.com:egor6-66/vendor-cli.git"
   },
   "files": [
-    "dist"
+    "dist",
+    "templates"
   ],
   "bin": {
     "vendor": "dist/index.js"

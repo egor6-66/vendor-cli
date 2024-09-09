@@ -5,7 +5,7 @@ import { IConfig } from '../interfaces';
 import { constants, message, paths, updateFile } from '../utils';
 
 class FilesCreator {
-    private templatesPath = path.join(__dirname, '../', 'templates');
+    private templatesPath = path.join(__dirname, '../', '../', 'templates');
 
     private tsconfigPath = path.resolve('tsconfig.json');
 
