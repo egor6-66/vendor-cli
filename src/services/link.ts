@@ -26,10 +26,9 @@ class Link {
             remote.entries.map(async (entry) => {
                 const url = entry?.url || remote.url;
 
-                return await this.downloadFile(url, 1, entry.name, ['bundle', 'types'], true);
+                return await this.downloadFile(url, 1, entry.name, ['bundle', 'types']);
             })
         ).then(() => {
-            FilesCreator.aliases(remote);
             FilesCreator.bootstrap(this.cssPaths);
             this.getRemoteConfigs(remote).then(async (res: any) => {
                 if (!res?.length) return;
@@ -55,15 +54,11 @@ class Link {
         });
     }
 
-    async downloadFile(url, version, entryName: string, folders: Array<'bundle' | 'types'>, init?: boolean) {
+    async downloadFile(url, version, entryName: string, folders: Array<'bundle' | 'types'>) {
         const outputPath = path.join(paths.input, entryName, `v_${version}`);
 
         try {
-            if (!fs.existsSync(outputPath)) {
-                mkdirSync(outputPath, { recursive: true });
-            }
-
-            return await Promise.all(
+            return await Promise.allSettled(
                 folders.map(async (folder) => {
                     return await fetch(`${url}/output/${entryName}/v_${version}/${folder}.zip`, { cache: 'no-cache' })
                         .then((res) => res.arrayBuffer())
@@ -76,16 +71,21 @@ class Link {
                                     this.cssPaths.push(`${entryName}/v_${version}`);
                                 }
 
-                                zip.extractEntryTo(i.entryName, path.join(outputPath, folder), true, true);
+                                zip.extractEntryTo(i.entryName, path.join(outputPath), true, true);
                             });
                         })
                         .then(() => {
-                            message('success', `${entryName} ${folder} updated`);
+                            message('success', `${entryName} ${folder} updated.`);
+                        })
+                        .catch(() => {
+                            if (folder === 'bundle') {
+                                message('warning', `${entryName} not found on remote host.`);
+                            }
                         });
                 })
             );
         } catch (e) {
-            message('error', e);
+            // message('error', e);
         }
     }
 

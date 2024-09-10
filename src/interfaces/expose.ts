@@ -16,13 +16,14 @@ interface IServer {
     playground?: IPlayground;
 }
 
-interface IEntry {
+export interface IEntry {
     version: number;
     name: string;
     target: string;
     watch?: boolean;
     checkTypes?: boolean;
     esbuildConfig?: EsbuildConfig;
+    original?: 'file' | 'folder';
 }
 
 export interface IExpose {

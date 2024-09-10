@@ -6,7 +6,6 @@ interface IEntry {
 }
 
 interface IRemote {
-    publicPath?: string;
     url: string;
     watch?: boolean;
     entries: Array<IEntry>;

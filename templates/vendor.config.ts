@@ -1,4 +1,4 @@
-import { IConfig } from '.vendor/_utils/interfaces';
+import { IConfig } from 'vendor-cli/dist/interfaces';
 
 const vendorConfig: IConfig = {
     expose: {
@@ -17,13 +17,10 @@ const vendorConfig: IConfig = {
                 version: 1,
                 name: 'example',
                 target: 'src/example/index.ts',
-                watch: true,
-                checkTypes: true,
             },
         ],
     },
     remote: {
-        publicPath: 'public',
         url: 'http://example',
         watch: true,
         entries: [{ name: 'example', version: 1 }],

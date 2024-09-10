@@ -13,7 +13,6 @@ const buildBundle = (location: string, cb: () => void) => ({
         const zip = new AdmZip();
         build.onEnd(async (result) => {
             const bundlePath = path.join(paths.output, location, 'bundle.zip');
-
             await Promise.all(
                 result.outputFiles.map(async (file) => {
                     const fileName = file.path.split(path.sep).pop();

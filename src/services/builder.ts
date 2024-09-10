@@ -4,7 +4,6 @@ import { constants, message } from '../utils';
 import Esbuild from './esbuild';
 import FilesCreator from './filesCreator';
 import Server from './server';
-import Tsc from './tsc';
 import Ws, { IWsServer } from './ws';
 
 class Builder {
@@ -13,8 +12,6 @@ class Builder {
     esbuild!: Esbuild;
 
     wsServer!: IWsServer;
-
-    tsc = new Tsc();
 
     constructor(config: IConfig) {
         this.config = config;
@@ -35,7 +32,6 @@ class Builder {
 
         if (entries.length) {
             try {
-                await this.tsc.createTsconfig(this.config);
                 await this.esbuild.buildEntries(this.config);
             } catch (e) {
                 message('error', e);
@@ -44,7 +40,7 @@ class Builder {
 
         if (server?.enabled) {
             if (server.playground.enabled) {
-                FilesCreator.playground(this.config);
+                // FilesCreator.playground(this.config);
                 await this.esbuild.buildPlayground(this.config);
             }
 

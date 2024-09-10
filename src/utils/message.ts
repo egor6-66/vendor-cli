@@ -1,10 +1,11 @@
-type MessageType = 'success' | 'info' | 'error';
+type MessageType = 'success' | 'info' | 'error' | 'warning';
 
 const message = (type: MessageType, message: string, exit?: boolean) => {
     const colors = {
         success: '\x1b[32m',
         info: '\x1b[34m',
         error: '\x1b[31m',
+        warning: '\x1b[33m',
     };
 
     const isError = type === 'error';

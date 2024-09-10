@@ -3,7 +3,7 @@ function insertTextNextToWord(initText: string, target: string, text: string, po
         let idx = initText.indexOf(target);
 
         if (position === 'after') {
-            idx -= target.length;
+            idx += target.length;
         }
 
         return initText.slice(0, idx) + text + initText.slice(idx);

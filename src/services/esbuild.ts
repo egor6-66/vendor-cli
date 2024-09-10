@@ -1,14 +1,21 @@
+import AdmZip from 'adm-zip';
 import { build, BuildOptions, context } from 'esbuild';
+import fs from 'fs';
 import path from 'path';
 
 import { buildBundlePlugin, buildTypesPlugin, htmlPlugin } from '../esbuild/plugins';
 import { IConfig } from '../interfaces';
-import { message, paths } from '../utils';
+import { constants, message, paths } from '../utils';
 
+import Tsc from './tsc';
 import { IWsServer } from './ws';
+
+const zip = new AdmZip();
 
 class Esbuild {
     wsServer!: IWsServer;
+
+    tsc = new Tsc();
 
     defaultConfig: BuildOptions = {
         bundle: true,
@@ -26,20 +33,26 @@ class Esbuild {
 
     async buildPlayground(config: IConfig) {
         try {
+            const playground = config?.expose?.server?.playground;
+
+            if (!playground.htmlPath) {
+                return message('warning', `htmlPath not found!`);
+            }
+
+            if (!fs.existsSync(path.resolve(playground.root))) {
+                return message('warning', `root ${playground.root} not found!`);
+            }
+
             const inputOutput = {
                 outdir: paths.playground,
-                entryNames: 'index',
-                entryPoints: [path.resolve(config.expose.server.playground.root)],
+                entryNames: 'index.[hash]',
+                entryPoints: [path.resolve(playground.root)],
             };
 
             const esbuildConfig = this.updateConfig(
                 config.expose.server.playground.esbuildConfig,
                 { ...config.expose.esbuildConfig, packages: 'bundle' },
-                [
-                    htmlPlugin((links) => {
-                        this.wsServer.sendToClient('updatePlayground', links);
-                    }),
-                ],
+                [htmlPlugin(playground.htmlPath)],
                 inputOutput
             );
 
@@ -54,15 +67,27 @@ class Esbuild {
         if (!config.expose.entries) return;
 
         try {
-            return await Promise.all(
+            return await Promise.allSettled(
                 config.expose.entries.map(async (entry) => {
+                    if (!fs.existsSync(path.resolve(entry.target))) {
+                        return message('warning', `${entry.target} not found!`);
+                    }
+
+                    const location = `${entry.name}/v_${entry.version}`;
+
+                    if (entry.original) {
+                        const bundlePath = path.join(paths.output, location, 'bundle.zip');
+                        const content = fs.readFileSync(path.resolve(entry.target));
+                        await zip.addFile(entry.target.split('/').pop(), content);
+
+                        return zip.writeZip(bundlePath);
+                    }
+
                     const inputOutput: BuildOptions = {
                         outdir: path.join(paths.output, entry.name, `v_${entry.version}`, 'bundle'),
                         entryPoints: [path.resolve(entry.target)],
                         write: false,
                     };
-
-                    const location = `${entry.name}/v_${entry.version}`;
 
                     const esbuildConfig = this.updateConfig(
                         entry.esbuildConfig,
@@ -81,11 +106,15 @@ class Esbuild {
 
                     const updEntry = {
                         checkTypes: true,
+                        watch: true,
                         ...entry,
                         config: esbuildConfig,
                     };
 
-                    if (updEntry.checkTypes) {
+                    const ext = entry.target.split('/').pop().split('.').pop();
+
+                    if (updEntry.checkTypes && ['tsx', 'ts'].includes(ext)) {
+                        await this.tsc.createTsconfig(entry, config.expose?.declarationTypes);
                         updEntry.config.plugins.push(
                             buildTypesPlugin(location, () => {
                                 this.wsServer.sendToClient('updateEntry', {
