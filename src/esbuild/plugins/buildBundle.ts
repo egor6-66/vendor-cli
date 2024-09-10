@@ -14,7 +14,7 @@ const buildBundle = (location: string, archiveOptions: Required<IArchive>, cb: (
         build.onEnd(async (result) => {
             const bundlePath = path.join(paths.output, location);
 
-            const { append, archive } = zip.compress({ out: bundlePath, ...archiveOptions });
+            const { append, archive, stream } = zip.compress({ out: bundlePath, ...archiveOptions });
 
             await Promise.allSettled(
                 result.outputFiles.map(async (file) => {
@@ -23,9 +23,11 @@ const buildBundle = (location: string, archiveOptions: Required<IArchive>, cb: (
                 })
             ).then(async () => {
                 await archive.finalize();
-                const bundleSize = getSize.file(bundlePath);
-                message('success', `bundle ${location} compiled successfully. size => ${bundleSize}`);
-                debounce(cb(), 200);
+                stream.on('close', () => {
+                    const bundleSize = getSize.bytesToSize(stream.bytesWritten);
+                    message('success', `bundle ${location} compiled successfully. size => ${bundleSize}`);
+                    debounce(cb(), 200);
+                });
             });
         });
     },

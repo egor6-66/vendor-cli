@@ -10,6 +10,7 @@ interface ICompressProps {
     out: string;
     lvl: number;
     pass: string;
+    getFileSize?: () => void;
 }
 const algorithm = 'aes-256-ctr';
 
@@ -41,7 +42,7 @@ const decrypt = (hash, pass) => {
 };
 
 function compress(props: ICompressProps) {
-    const { out, lvl, pass } = props;
+    const { out, lvl, pass, getFileSize } = props;
 
     if (!fs.existsSync(out)) {
         fs.mkdirSync(out, { recursive: true });
@@ -76,7 +77,7 @@ function compress(props: ICompressProps) {
         },
     };
 
-    return { append, archive };
+    return { append, archive, stream };
 }
 
 export { compress };
