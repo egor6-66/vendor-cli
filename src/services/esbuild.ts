@@ -4,6 +4,7 @@ import path from 'path';
 
 import { buildBundlePlugin, buildTypesPlugin, htmlPlugin } from '../esbuild/plugins';
 import { IConfig } from '../interfaces';
+import { IArchive } from '../interfaces/expose';
 import { message, paths, zip } from '../utils';
 
 import Tsc from './tsc';
@@ -73,10 +74,9 @@ class Esbuild {
                     const archiveOptions = {
                         lvl: entry?.archive?.lvl || 0,
                         pass: entry?.archive?.pass || '',
-                    };
+                    } as Required<IArchive>;
 
                     const location = `${entry.name}/v_${entry.version}`;
-                    console.log(entry.original);
 
                     if (entry?.original) {
                         const bundlePath = path.join(paths.output, location);
@@ -125,16 +125,16 @@ class Esbuild {
                     const ext = entry.target.split('/').pop().split('.').pop();
 
                     if (updEntry.checkTypes && ['tsx', 'ts'].includes(ext)) {
-                        // await this.tsc.createTsconfig(entry, config.expose?.declarationTypes);
-                        // updEntry.config.plugins.push(
-                        //     buildTypesPlugin(location, () => {
-                        //         this.wsServer.sendToClient('updateEntry', {
-                        //             version: entry.version,
-                        //             name: entry.name,
-                        //             folder: 'types',
-                        //         });
-                        //     })
-                        // );
+                        await this.tsc.createTsconfig(entry, config.expose?.declarationTypes);
+                        updEntry.config.plugins.push(
+                            buildTypesPlugin(location, () => {
+                                this.wsServer.sendToClient('updateEntry', {
+                                    version: entry.version,
+                                    name: entry.name,
+                                    folder: 'types',
+                                });
+                            })
+                        );
                     }
 
                     if (updEntry.watch) {
