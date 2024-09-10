@@ -1,16 +1,13 @@
-import AdmZip from 'adm-zip';
 import { build, BuildOptions, context } from 'esbuild';
 import fs from 'fs';
 import path from 'path';
 
 import { buildBundlePlugin, buildTypesPlugin, htmlPlugin } from '../esbuild/plugins';
 import { IConfig } from '../interfaces';
-import { constants, message, paths } from '../utils';
+import { message, paths, zip } from '../utils';
 
 import Tsc from './tsc';
 import { IWsServer } from './ws';
-
-const zip = new AdmZip();
 
 class Esbuild {
     wsServer!: IWsServer;
@@ -73,14 +70,28 @@ class Esbuild {
                         return message('warning', `${entry.target} not found!`);
                     }
 
+                    const archiveOptions = {
+                        lvl: entry?.archive?.lvl || 0,
+                        pass: entry?.archive?.pass || '',
+                    };
+
                     const location = `${entry.name}/v_${entry.version}`;
+                    console.log(entry.original);
 
-                    if (entry.original) {
-                        const bundlePath = path.join(paths.output, location, 'bundle.zip');
-                        const content = fs.readFileSync(path.resolve(entry.target));
-                        await zip.addFile(entry.target.split('/').pop(), content);
+                    if (entry?.original) {
+                        const bundlePath = path.join(paths.output, location);
 
-                        return zip.writeZip(bundlePath);
+                        const { append, archive } = zip.compress({ out: bundlePath, ...archiveOptions });
+                        const fullPath = path.resolve(entry.target);
+
+                        if (fs.lstatSync(fullPath).isDirectory()) {
+                            await append.directory(fullPath);
+                        } else {
+                            const content = fs.readFileSync(fullPath);
+                            await append.buffer(content, entry.name);
+                        }
+
+                        return await archive.finalize();
                     }
 
                     const inputOutput: BuildOptions = {
@@ -93,7 +104,7 @@ class Esbuild {
                         entry.esbuildConfig,
                         config.expose.esbuildConfig,
                         [
-                            buildBundlePlugin(location, () => {
+                            buildBundlePlugin(location, archiveOptions, () => {
                                 this.wsServer.sendToClient('updateEntry', {
                                     version: entry.version,
                                     name: entry.name,
@@ -114,16 +125,16 @@ class Esbuild {
                     const ext = entry.target.split('/').pop().split('.').pop();
 
                     if (updEntry.checkTypes && ['tsx', 'ts'].includes(ext)) {
-                        await this.tsc.createTsconfig(entry, config.expose?.declarationTypes);
-                        updEntry.config.plugins.push(
-                            buildTypesPlugin(location, () => {
-                                this.wsServer.sendToClient('updateEntry', {
-                                    version: entry.version,
-                                    name: entry.name,
-                                    folder: 'types',
-                                });
-                            })
-                        );
+                        // await this.tsc.createTsconfig(entry, config.expose?.declarationTypes);
+                        // updEntry.config.plugins.push(
+                        //     buildTypesPlugin(location, () => {
+                        //         this.wsServer.sendToClient('updateEntry', {
+                        //             version: entry.version,
+                        //             name: entry.name,
+                        //             folder: 'types',
+                        //         });
+                        //     })
+                        // );
                     }
 
                     if (updEntry.watch) {
