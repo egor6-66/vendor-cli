@@ -13,7 +13,7 @@ const html = (cb: (ext: string) => void) => ({
                     cb(ext);
                 }
             });
-            message('success', 'playground rebuild');
+            message('info', 'playground rebuild');
         });
     },
 });

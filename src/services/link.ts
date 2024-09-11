@@ -1,4 +1,3 @@
-import fs, { mkdirSync } from 'fs';
 import path from 'path';
 import WebSocket from 'ws';
 
@@ -80,7 +79,7 @@ class Link {
                 })
             );
         } catch (e) {
-            message('error', e);
+            // message('error', e);
         }
     }
 

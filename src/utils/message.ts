@@ -13,6 +13,12 @@ const message = (type: MessageType, message: string, exit?: boolean) => {
     console.log(colors[type], isError ? `😠 ${message} 😠` : message, '\x1b[0m');
 
     if (exit || isError) process.exit(0);
+
+    return {
+        size: () => {
+            console.log('zi');
+        },
+    };
 };
 
 export default message;

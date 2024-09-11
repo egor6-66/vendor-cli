@@ -58,7 +58,7 @@ class Esbuild {
             );
 
             context(esbuildConfig).then((res) => res.watch());
-            message('success', `🎮 Playground started 🎮`);
+            message('info', `🎮 Playground started 🎮`);
         } catch (e) {
             message('error', e);
         }
@@ -146,7 +146,7 @@ class Esbuild {
 
                     if (updEntry.watch) {
                         await context(updEntry.config).then((res) => res.watch());
-                        message('success', `👀 Watching: ${updEntry.name}. 👀`);
+                        message('info', `👀 Watching: ${updEntry.name}. 👀`);
                     } else {
                         await build(updEntry.config);
                     }
