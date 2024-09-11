@@ -3,6 +3,7 @@ interface IEntry {
     watch?: boolean;
     version: number;
     name: string;
+    pass?: string;
 }
 
 interface IRemote {

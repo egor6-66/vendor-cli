@@ -1,83 +1,91 @@
+import archiver from 'archiver';
+import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import unzipper from 'unzipper';
 
-const crypto = require('crypto');
-
-const archiver = require('archiver');
-archiver.registerFormat('zip-encrypted', require('archiver-zip-encrypted'));
+import message from './message';
 
 interface ICompressProps {
-    out: string;
+    pathToDir: string;
+    fileName: string;
     lvl: number;
     pass: string;
-    getFileSize?: () => void;
 }
 const algorithm = 'aes-256-ctr';
+const openKey = Buffer.from('0000000000000000');
 
-const encrypt = (text, pass) => {
-    const openKey = crypto.randomBytes(16);
-    const salt = pass;
-    const hash = crypto.createHash('sha1');
+const updPass = (pass) => {
+    const updPass = pass + 'vOVH6sdmpNWjRRIqCc7rdxs01lwHzfr3awdawdawdwaddw';
 
-    hash.update(salt);
-
-    const key = hash.digest().slice(0, 16);
-
-    const cipher = crypto.createCipheriv('aes-128-cbc', key, openKey);
-
-    const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
-
-    return {
-        content: encrypted.toString('hex'),
-        openKey,
-    };
-};
-
-const decrypt = (hash, pass) => {
-    const decipher = crypto.createDecipheriv(algorithm, pass, Buffer.from(hash.iv, 'hex'));
-
-    const decrpyted = Buffer.concat([decipher.update(Buffer.from(hash.content, 'hex')), decipher.final()]);
-
-    return decrpyted.toString();
+    return updPass.slice(0, 32);
 };
 
 function compress(props: ICompressProps) {
-    const { out, lvl, pass, getFileSize } = props;
+    const { pathToDir, fileName, lvl, pass } = props;
 
-    if (!fs.existsSync(out)) {
-        fs.mkdirSync(out, { recursive: true });
+    if (!fs.existsSync(pathToDir)) {
+        fs.mkdirSync(pathToDir, { recursive: true });
     }
 
-    const stream = fs.createWriteStream(path.join(out, 'bundle.zip'));
-
-    const archive = archiver('zip', {
-        zlib: { level: lvl },
-    });
+    const fullPath = path.join(pathToDir, pass ? `init_${fileName}` : fileName);
+    const stream = fs.createWriteStream(fullPath);
+    const archive = archiver('zip', { zlib: { level: lvl } });
 
     archive.pipe(stream);
 
     const append = {
         async buffer(buffer: Buffer, name: string) {
-            if (pass) {
-                const { openKey, content } = encrypt(buffer, pass);
-                await archive.append(content, { name: name });
-                await archive.append(openKey, { name: `${name}.openKey.txt` });
-            } else {
-                await archive.append(buffer, { name: name });
-            }
+            await archive.append(buffer, { name: name });
         },
         async directory(pathToDir: string) {
-            const files = fs.readdirSync(pathToDir);
-
-            return await Promise.all(
-                files.map(async (file) => {
-                    return this.buffer(fs.readFileSync(path.join(pathToDir, file)), file);
-                })
-            );
+            archive.directory(pathToDir, false);
         },
     };
+
+    if (pass) {
+        stream.on('close', () => {
+            const enc = crypto.createCipheriv(algorithm, updPass(pass), openKey);
+            const readStream = fs.createReadStream(fullPath);
+            const writeStream = fs.createWriteStream(path.join(pathToDir, fileName));
+            readStream
+                .pipe(enc)
+                .pipe(writeStream)
+                .on('close', () => {
+                    fs.unlinkSync(fullPath);
+                });
+        });
+    }
 
     return { append, archive, stream };
 }
 
-export { compress };
+async function unzip(buffer: ArrayBuffer, output: string, pass = '', entryName) {
+    const getDir = async () => {
+        try {
+            const decrypt = (content, pass) => {
+                const decipher = crypto.createDecipheriv(algorithm, updPass(pass), Buffer.from(openKey.toString('hex'), 'hex'));
+
+                return Buffer.concat([decipher.update(Buffer.from(content, 'hex')), decipher.final()]);
+            };
+
+            return await unzipper.Open.buffer(pass ? decrypt(buffer, pass) : Buffer.from(buffer));
+        } catch (e) {
+            if (pass) {
+                message('warning', `${entryName} Incorrect archive password or archive not found`);
+            }
+        }
+    };
+
+    const directory = await getDir();
+
+    if (!fs.existsSync(output)) {
+        fs.mkdirSync(output, { recursive: true });
+    }
+
+    await directory.extract({ path: output });
+
+    return directory.files;
+}
+
+export { compress, unzip };

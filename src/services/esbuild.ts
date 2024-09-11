@@ -5,7 +5,7 @@ import path from 'path';
 import { buildBundlePlugin, buildTypesPlugin, htmlPlugin } from '../esbuild/plugins';
 import { IConfig } from '../interfaces';
 import { IArchive } from '../interfaces/expose';
-import { message, paths, zip } from '../utils';
+import { debounce, getSize, message, paths, zip } from '../utils';
 
 import Tsc from './tsc';
 import { IWsServer } from './ws';
@@ -81,7 +81,7 @@ class Esbuild {
                     if (entry?.original) {
                         const bundlePath = path.join(paths.output, location);
 
-                        const { append, archive } = zip.compress({ out: bundlePath, ...archiveOptions });
+                        const { append, archive, stream } = zip.compress({ pathToDir: bundlePath, fileName: 'bundle.zip', ...archiveOptions });
                         const fullPath = path.resolve(entry.target);
 
                         if (fs.lstatSync(fullPath).isDirectory()) {
@@ -90,6 +90,10 @@ class Esbuild {
                             const content = fs.readFileSync(fullPath);
                             await append.buffer(content, entry.name);
                         }
+
+                        stream.on('close', () => {
+                            message('success', `${location} types generation successfully. size => ${getSize.bytesToSize(stream.bytesWritten)}`);
+                        });
 
                         return await archive.finalize();
                     }
@@ -127,7 +131,7 @@ class Esbuild {
                     if (updEntry.checkTypes && ['tsx', 'ts'].includes(ext)) {
                         await this.tsc.createTsconfig(entry, config.expose?.declarationTypes);
                         updEntry.config.plugins.push(
-                            buildTypesPlugin(location, () => {
+                            buildTypesPlugin(location, archiveOptions, () => {
                                 this.wsServer.sendToClient('updateEntry', {
                                     version: entry.version,
                                     name: entry.name,

@@ -3,11 +3,10 @@ import path from 'path';
 import WebSocket from 'ws';
 
 import { IConfig } from '../interfaces';
-import { message, paths } from '../utils';
+import { message, paths, zip } from '../utils';
 
 import FilesCreator from './filesCreator';
 
-const AdmZip = require('adm-zip');
 class Link {
     config!: IConfig;
 
@@ -26,7 +25,7 @@ class Link {
             remote.entries.map(async (entry) => {
                 const url = entry?.url || remote.url;
 
-                return await this.downloadFile(url, 1, entry.name, ['bundle', 'types']);
+                return await this.downloadFile(url, 1, entry.name, ['bundle', 'types'], entry?.pass);
             })
         ).then(() => {
             FilesCreator.bootstrap(this.cssPaths);
@@ -43,7 +42,7 @@ class Link {
                                 remote.entries.forEach((entry) => {
                                     if (data.version === entry.version && data.name === entry.name && (remote.watch || entry.watch)) {
                                         const url = entry?.url || remote?.url;
-                                        this.downloadFile(url, entry.version, entry.name, [data.folder]);
+                                        this.downloadFile(url, entry.version, entry.name, [data.folder], entry?.pass);
                                     }
                                 });
                             }
@@ -54,7 +53,7 @@ class Link {
         });
     }
 
-    async downloadFile(url, version, entryName: string, folders: Array<'bundle' | 'types'>) {
+    async downloadFile(url, version, entryName: string, folders: Array<'bundle' | 'types'>, pass?: string) {
         const outputPath = path.join(paths.input, entryName, `v_${version}`);
 
         try {
@@ -63,21 +62,17 @@ class Link {
                     return await fetch(`${url}/output/${entryName}/v_${version}/${folder}.zip`, { cache: 'no-cache' })
                         .then((res) => res.arrayBuffer())
                         .then(async (buffer) => {
-                            const zip = new AdmZip(Buffer.from(buffer));
-                            const zipEntries = zip.getEntries();
-
-                            zipEntries.map(async (i) => {
-                                if (i.entryName === 'index.css') {
+                            const files = await zip.unzip(buffer, outputPath, pass, `${folder}/${entryName}`);
+                            files.forEach((file) => {
+                                if (file.path === 'index.css') {
                                     this.cssPaths.push(`${entryName}/v_${version}`);
                                 }
-
-                                zip.extractEntryTo(i.entryName, path.join(outputPath), true, true);
                             });
                         })
                         .then(() => {
                             message('success', `${entryName} ${folder} updated.`);
                         })
-                        .catch(() => {
+                        .catch((e) => {
                             if (folder === 'bundle') {
                                 message('warning', `${entryName} not found on remote host.`);
                             }
@@ -85,7 +80,7 @@ class Link {
                 })
             );
         } catch (e) {
-            // message('error', e);
+            message('error', e);
         }
     }
 
