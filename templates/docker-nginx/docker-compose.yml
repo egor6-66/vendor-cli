@@ -1,12 +1,9 @@
 services:
-  nginx:
-    container_name: nginx-server
+  vendor_nginx:
+    container_name: static-serve
     build:
-      context: ../vendor
+      context: .
       dockerfile: Dockerfile
-    volumes:
-      - ../../output:/usr/vendor/output
-      - ../../playground:/usr/vendor/playground
     ports:
       - "80:80"
     restart: always

@@ -1,12 +1,14 @@
 import fs from 'fs';
 import path from 'path';
 
+import { IConfig } from '../interfaces';
 import { IEntry } from '../interfaces/expose';
 import { message, paths } from '../utils';
 
 class Tsc {
-    async createTsconfig(entry: IEntry, declarationTypes?: Array<string>) {
+    async createTsconfig(entry: IEntry, config: IConfig) {
         try {
+            const declarationTypes = config.expose.declarationTypes;
             const root = '../../../../';
             const entryFolderPath = path.join(paths.output, entry.name, `v_${entry.version}`);
             const tsconfigPath = path.join(entryFolderPath, 'tsconfig.json');
@@ -25,6 +27,8 @@ class Tsc {
                     isolatedModules: true,
                     resolveJsonModule: true,
                     moduleResolution: 'bundler',
+                    experimentalDecorators: true,
+                    emitDecoratorMetadata: true,
                     module: 'esnext',
                 },
                 include: [`${root}${entry.target}`],

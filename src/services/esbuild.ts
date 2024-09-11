@@ -132,7 +132,7 @@ class Esbuild {
                     const ext = entry.target.split('/').pop().split('.').pop();
 
                     if (updEntry.checkTypes && ['tsx', 'ts'].includes(ext)) {
-                        await this.tsc.createTsconfig(entry, config.expose?.declarationTypes);
+                        await this.tsc.createTsconfig(entry, config);
                         updEntry.config.plugins.push(
                             buildTypesPlugin(location, archiveOptions, () => {
                                 this.wsServer.sendToClient('updateEntry', {

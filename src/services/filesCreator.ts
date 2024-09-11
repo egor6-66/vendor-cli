@@ -50,6 +50,15 @@ class FilesCreator {
 
         fs.writeFileSync(path.join(paths.utils, 'bootstrap.js'), imports);
     }
+
+    docker() {
+        const dockerPath = path.join(this.templatesPath, 'docker-nginx');
+        fs.readdir(dockerPath, (err, files) => {
+            files.forEach((file) => {
+                fs.copyFileSync(path.join(dockerPath, file), path.resolve(file));
+            });
+        });
+    }
 }
 
 export default new FilesCreator();

@@ -2,6 +2,8 @@ import { BuildOptions } from 'esbuild';
 
 type EsbuildConfig = Omit<BuildOptions, 'outdir' | 'entryPoints' | 'entryNames'>;
 
+type Platform = 'browser' | 'node';
+
 interface IPlayground {
     enabled?: boolean;
     root: string;
@@ -30,6 +32,7 @@ export interface IEntry {
     esbuildConfig?: EsbuildConfig;
     original?: boolean;
     archive?: IArchive;
+    platform?: Platform;
 }
 
 export interface IExpose {
@@ -37,6 +40,7 @@ export interface IExpose {
     server?: IServer;
     esbuildConfig?: EsbuildConfig;
     entries: Array<IEntry>;
+    platform?: Platform;
 }
 
 export default IExpose;

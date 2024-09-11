@@ -39,6 +39,13 @@ class Root {
                 new services.Link(config);
             })
             .description('Creating config and working directories.');
+
+        program
+            .command('docker')
+            .action(async () => {
+                services.FilesCreator.docker();
+            })
+            .description('Creates docker and nginx files in the root directory.');
     }
 
     async getConfig(): Promise<IConfig> {
