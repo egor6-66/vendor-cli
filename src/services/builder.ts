@@ -40,7 +40,7 @@ class Builder {
 
         if (server?.enabled) {
             if (server.playground.enabled) {
-                // FilesCreator.playground(this.config);
+                FilesCreator.playground(this.config);
                 await this.esbuild.buildPlayground(this.config);
             }
 

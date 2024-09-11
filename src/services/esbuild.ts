@@ -5,7 +5,7 @@ import path from 'path';
 import { buildBundlePlugin, buildTypesPlugin, htmlPlugin } from '../esbuild/plugins';
 import { IConfig } from '../interfaces';
 import { IArchive } from '../interfaces/expose';
-import { debounce, getSize, message, paths, zip } from '../utils';
+import { getSize, message, paths, zip } from '../utils';
 
 import Tsc from './tsc';
 import { IWsServer } from './ws';
@@ -43,14 +43,17 @@ class Esbuild {
 
             const inputOutput = {
                 outdir: paths.playground,
-                entryNames: 'index.[hash]',
                 entryPoints: [path.resolve(playground.root)],
             };
 
             const esbuildConfig = this.updateConfig(
                 config.expose.server.playground.esbuildConfig,
                 { ...config.expose.esbuildConfig, packages: 'bundle' },
-                [htmlPlugin(playground.htmlPath)],
+                [
+                    htmlPlugin((ext) => {
+                        this.wsServer.sendToClient('updatePlayground', { ext });
+                    }),
+                ],
                 inputOutput
             );
 
